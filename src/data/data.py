@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 from zipfile import ZipFile
-
+from src import constants
 
 def load_data_std(args):
     problems = json.load(
@@ -18,23 +18,23 @@ def load_data_std(args):
 
 def load_data_img(args):
     problems = json.load(
-        open(os.path.join(args.data_root, 'scienceqa/problems.json')))
+        open(constants.SCIENCEQA_PROBLEMS_PATH))
     pid_splits = json.load(
-        open(os.path.join(args.data_root, 'scienceqa/pid_splits.json')))
+        open(constants.SCIENCEQA_PID_SPLITS))
     captions = json.load(open(args.caption_file))["captions"]
-    name_maps = json.load(open('data/vision_features/name_map.json'))
+    name_maps = json.load(open(constants.SCIENCEQA_NAME_MAP))
 
     # check
     if args.img_type == "resnet":
-        image_features = np.load('data/resnet.npy')
+        image_features = np.load(constants.SCIENCEQA_RESNET)
         image_features = np.expand_dims(image_features, axis=1)
         image_features = image_features.repeat(512, axis=1)
     elif args.img_type == "clip":
-        image_features = np.load('data/vision_features/clip.npy')
+        image_features = np.load(constants.SCIENCEQA_CLIP)
     elif args.img_type == "detr":
-        image_features = np.load('data/vision_features/detr.npy')
+        image_features = np.load(constants.SCIENCEQA_DETR)
     else:
-        image_features = np.load('data/vision_features/detr.npy')
+        image_features = np.load(constants.SCIENCEQA_DETR)
     print("img_features size: ", image_features.shape)
 
     qids = get_qids(args, captions, pid_splits, problems)

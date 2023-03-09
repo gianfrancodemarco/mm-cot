@@ -72,11 +72,11 @@ class ChainOfThought:
     def evaluate(self):
 
         generate_answer = self.args.prompt_format in [
-            PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION_ANSWER.value,
+            PromptFormat.QUESTION_CONTEXT_OPTIONS_SOLUTION_ANSWER.value,
         ]
 
         generate_rationale = self.args.prompt_format in [
-            PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION_ANSWER.value,
+            PromptFormat.QUESTION_CONTEXT_OPTIONS_SOLUTION_ANSWER.value,
             PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value,
         ]
 

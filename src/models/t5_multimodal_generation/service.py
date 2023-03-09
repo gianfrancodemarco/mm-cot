@@ -14,6 +14,7 @@ from src.models.t5_multimodal_generation.training_params import get_t5_model, ge
 from src.models.t5_multimodal_generation.utils import extract_predictions_and_targets, extract_ans, \
     postprocess_text
 from src.models.t5_multimodal_generation.utils import make_backup_dir
+from src import constants
 
 
 class T5ForMultimodalGenerationService:
@@ -61,7 +62,7 @@ class T5ForMultimodalGenerationService:
     def evaluate(self, test_set):
         """ Generate the answer for the eval set """
 
-        self._seq2seq_existing_check()
+        self._seq2seq_existing_check() #TODO REMVOE
 
         trainer = self.seq2seq_trainer
 
@@ -70,36 +71,34 @@ class T5ForMultimodalGenerationService:
         trainer.save_metrics("test", metrics)
         predict_results = trainer.predict(
             test_dataset=test_set, max_length=self.args.output_len)
+        
+        preds, targets = extract_predictions_and_targets(
+            predict_results, self.args, self.tokenizer)
+        results_ans = {}
+        results_rationale = {}
+        results_reference = {}
+        num_fail = 0
+        test_qids = self.dataframe['qids']['test']
 
-        if trainer.is_world_process_zero():
-            preds, targets = extract_predictions_and_targets(
-                predict_results, self.args.use_generate, self.tokenizer)
-            results_ans = {}
-            results_rationale = {}
-            results_reference = {}
-            num_fail = 0
-            test_qids = self.dataframe['qids']['test']
-
-            for idx, qid in enumerate(test_qids):
-                pred = preds[int(idx)]
-                ref = targets[int(idx)]
-                extract_pred = extract_ans(pred)
-                if extract_pred != "FAILED":
-                    if extract_pred in self.args.options:
-                        extract_pred = self.args.options.index(extract_pred)
-                    else:
-                        extract_pred = random.choice(
-                            range(0, len(self.args.options)))
+        for idx, qid in enumerate(test_qids[:10]):
+            pred = preds[int(idx)]
+            ref = targets[int(idx)]
+            extract_pred = extract_ans(pred)
+            if extract_pred != "FAILED":
+                if extract_pred in self.args.options:
+                    extract_pred = self.args.options.index(extract_pred)
                 else:
-                    num_fail += 1
-                    # random choose one option
-                    extract_pred = random.choice(range(len(self.args.options)))
-                results_ans[str(qid)] = extract_pred
-                results_rationale[str(qid)] = pred
-                results_reference[str(qid)] = ref
+                    extract_pred = random.choice(
+                        range(0, len(self.args.options)))
+            else:
+                num_fail += 1
+                # random choose one option
+                extract_pred = random.choice(range(len(self.args.options)))
+            results_ans[str(qid)] = extract_pred
+            results_rationale[str(qid)] = pred
+            results_reference[str(qid)] = ref
 
-            scores = get_scores(results_ans, results_rationale, results_reference, os.path.join(
-                self.args.data_root, "scienceqa/problems.json"))
+            scores = get_scores(results_ans, results_rationale, results_reference, constants.SCIENCEQA_PROBLEMS_PATH)
             preds = [pred.strip() for pred in preds]
 
             output_data = {
@@ -110,49 +109,42 @@ class T5ForMultimodalGenerationService:
             }
 
             output_prediction_file = os.path.join(
-                self.save_dir, "predictions_ans_test.json")
+                self.save_dir, f"predictions_ans_test_{datetime.now().strftime('%H_%M_%S')}.json")
 
             with open(output_prediction_file, "w") as writer:
                 writer.write(json.dumps(output_data, indent=4))
 
-    def inference(self, eval_set):
-        """ Generate the rationale for the eval set """
+    def inference(self, data):
+        """Generate the rationale for the input data"""
 
         self._seq2seq_existing_check()
 
-        output_data = {
-            "preds": [],
-            #"labels": []
-        }
+        preds = []
 
-        for batch in ScienceQADatasetIterator(dataset=eval_set, batch_size=1):
+        for batch in ScienceQADatasetIterator(dataset=data, batch_size=1):
             self.model.config.max_length = 512
             self.model.config.repetition_penalty = 10.0
             self.model.config.length_penalty = 10.0
+
             out = self.model.generate(
                 batch[0]['input_ids'][None, :], 
-                image_ids=batch[0]['image_ids'][None, :]#, 
-                #generation_config={"max_length": 512}
+                image_ids=batch[0]['image_ids'][None, :], 
             )
-            # predict_results = self.seq2seq_trainer.predict(test_dataset=batch, max_length=self.args.output_len)
 
-            #if self.seq2seq_trainer.is_world_process_zero():
             predictions = self.tokenizer.batch_decode(
-                out, skip_special_tokens=True, clean_up_tokenization_spaces=True
+                out, skip_special_tokens=True,
+                clean_up_tokenization_spaces=True
             )
-            # predictions, targets = extract_predictions_and_targets(
-            #    predict_results, self.args, self.tokenizer)
+
             predictions = [pred.strip() for pred in predictions]
 
-            output_data["preds"].extend(predictions)
-            # output_data["labels"].extend(targets)
+            preds.extend(predictions)
 
-        if self.seq2seq_trainer.is_world_process_zero():
-            output_prediction_file = os.path.join(
-                self.save_dir, f"predictions_ans_eval_{str(datetime.now())}.json")
+        output_prediction_file = os.path.join(
+            self.save_dir, f"predictions_ans_eval_{datetime.now().strftime('%H_%M_%S')}.json")
 
-            with open(output_prediction_file, "w") as writer:
-                writer.write(json.dumps(output_data, indent=4))
+        with open(output_prediction_file, "w") as writer:
+            writer.write(json.dumps(preds, indent=4))
 
     def _seq2seq_existing_check(self):
         if not self.seq2seq_trainer:

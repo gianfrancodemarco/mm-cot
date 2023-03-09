@@ -52,6 +52,7 @@ if __name__ == '__main__':
     chain_of_thought = ChainOfThought(args) \
         .set_tokenizer(tokenizer) \
         .set_eval_set(test_set) \
+        .set_test_set(test_set) \
         .load_model() \
         .evaluate()
     # chain_of_thought.evaluate()
