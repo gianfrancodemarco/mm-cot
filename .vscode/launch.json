@@ -46,7 +46,9 @@
         "--caption_file",
         "data/dataset/captions.json",
         "--evaluate_dir",
-        "models/MM-CoT-UnifiedQA-base-Rationale"
+        "models/MM-CoT-UnifiedQA-base-Rationale",
+        "--task",
+        "EVALUATE"
       ]
     },
     {

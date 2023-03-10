@@ -1,21 +1,22 @@
 import json
 import os
 import random
+from datetime import datetime
 
 import evaluate
 import numpy as np
-from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer
-from transformers import T5Tokenizer
 from torch.utils.data import Dataset
+from tqdm import tqdm
+from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer, T5Tokenizer
 
-from datetime import datetime
-from src.data.science_qa_dataset_iterator import ScienceQADatasetIterator
-from src.models.evaluation.evaluation import get_scores
-from src.models.t5_multimodal_generation.training_params import get_t5_model, get_training_args
-from src.models.t5_multimodal_generation.utils import extract_predictions_and_targets, extract_ans, \
-    postprocess_text
-from src.models.t5_multimodal_generation.utils import make_backup_dir
 from src import constants
+from src.data.fakeddit.labels import convert_label_to_int, get_label_text
+from src.data.science_qa_dataset_iterator import ScienceQADatasetIterator
+from src.models.t5_multimodal_generation.training_params import (
+    get_t5_model, get_training_args)
+from src.models.t5_multimodal_generation.utils import (
+    extract_ans, extract_predictions_and_targets, make_backup_dir,
+    postprocess_text)
 
 
 class T5ForMultimodalGenerationService:
@@ -71,8 +72,8 @@ class T5ForMultimodalGenerationService:
             "targets": []
         }
 
-        for elem in dataset:
-            
+        for elem in tqdm(dataset):
+
             out = self.model.generate(
                 elem['input_ids'][None, :],
                 image_ids=elem['image_ids'][None, :],
@@ -83,9 +84,11 @@ class T5ForMultimodalGenerationService:
                 clean_up_tokenization_spaces=True
             )
 
-            
             output["predictions"].extend(prediction)
-            output["targets"].append(elem["labels"])
+            label_text = get_label_text(convert_label_to_int(elem['labels']))
+            output["targets"].append(label_text)
+            
+        output["metrics"] = self.compute_metrics_acc(output["predictions"], output["targets"])
 
         output_prediction_file = os.path.join(
             self.save_dir, f"predictions_ans_test_{datetime.now().strftime('%H_%M_%S')}.json")
@@ -150,15 +153,15 @@ class T5ForMultimodalGenerationService:
         result["gen_len"] = np.mean(prediction_lens)
         return result
 
-    def compute_metrics_acc(self, output):
+    def compute_metrics_acc(self, predictions, targets):
         """
         Accuracy for answer inference
         """
 
-        predictions, label_ids = output
+        #predictions, label_ids = output
 
-        predictions, targets = extract_predictions_and_targets(
-            predictions, label_ids, self.tokenizer)
+        # predictions, targets = extract_predictions_and_targets(
+        #     predictions, label_ids, self.tokenizer)
         correct = 0
         assert len(predictions) == len(targets)
         for idx, pred in enumerate(predictions):
@@ -168,4 +171,4 @@ class T5ForMultimodalGenerationService:
             best_option = extract_pred
             if reference == best_option:
                 correct += 1
-        return {'Accuracy': 1.0 * correct / len(targets)}
+        return {'accuracy': 1.0 * correct / len(targets)}

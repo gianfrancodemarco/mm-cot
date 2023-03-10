@@ -35,7 +35,7 @@ from src.data.fakeddit.labels import (LabelsTypes, get_label_column,
 
 #  \nContext: A news is a piece of information regardings fact happening in the world. A news can also be crafted and manipulated with malicious objectives.
 DATASET_PATH = 'data/fakeddit/partial/dataset.csv'
-DEFAULT_PROMPT = """Question: How the image relates to the text? \n<TEXT>\nOptions: <OPTIONS>\nSolution:"""
+DEFAULT_PROMPT = """Question: Which of the given options better reflects the news given? \nContext: A news is a piece of information regardings fact happening in the world. A news can also be crafted and manipulated with malicious objectives. \n<TEXT>\nOptions: <OPTIONS>"""
 
 IMG_SHAPE = (100, 256)
 
@@ -71,7 +71,7 @@ class FakedditDataset(Dataset):
 
     def _build_dataset(self) -> None:
 
-        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:10]):
+        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:50]):
             _input_ids, _attention_mask = self.get_input_ids(row)
             #_labels = self.get_label_ids(row)
 

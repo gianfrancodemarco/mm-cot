@@ -29,6 +29,7 @@ class SixWayLabels(Enum):
     MANIPULATED_CONTENT: 4
     MISLEADING_CONTENT: 5
 
+
 def get_options_text(labels_type: LabelsTypes) -> str:
     if labels_type == LabelsTypes.TWO_WAY:
         return "(A) True (B) False"
@@ -37,6 +38,7 @@ def get_options_text(labels_type: LabelsTypes) -> str:
     if labels_type == LabelsTypes.SIX_WAY:
         return "(A) True (B) Satire (C) False connection (D) Imposter content (E) Manipulated content (F) Misleading content"
 
+
 def get_label_column(labels_type: LabelsTypes) -> str:
     if labels_type == LabelsTypes.TWO_WAY:
         return "2_way_label"
@@ -44,3 +46,21 @@ def get_label_column(labels_type: LabelsTypes) -> str:
         return "3_way_label"
     if labels_type == LabelsTypes.SIX_WAY:
         return "6_way_label"
+
+
+def convert_label_to_int(label: str) -> int:
+
+    _map = {
+        0: "A",
+        1: "B",
+        2: "C",
+        3: "D",
+        4: "E",
+        5: "F"
+    }
+
+    return _map.get(label)
+
+
+def get_label_text(label: str) -> str:
+    return f"The answer is ({label})"
