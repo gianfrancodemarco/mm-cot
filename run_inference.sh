@@ -9,7 +9,6 @@ CUDA_VISIBLE_DEVICES=0,1 python src/main.py \
   --output_len 512 \
   --final_eval \
   --prompt_format QCM-LE \
-  --evaluate_dir models/rationale \
   --data_root data/dataset \
   --caption_file data/dataset/captions.json \
   --evaluate_dir models/MM-CoT-UnifiedQA-base-Rationale

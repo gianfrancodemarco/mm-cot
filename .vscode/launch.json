@@ -120,7 +120,7 @@
       ]
     },
     {
-      "name": "Main ScinceQA Answer",
+      "name": "Main ScienceQA Answer",
       "type": "python",
       "request": "launch",
       "program": "${cwd}/src/main.py",

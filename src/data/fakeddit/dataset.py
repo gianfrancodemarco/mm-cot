@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 from PIL import Image
 from torch import Tensor
-from torch.utils.data import IterableDataset
+from torch.utils.data import IterableDataset, Dataset
 from torchvision import transforms
 from transformers import T5Tokenizer
 
@@ -41,7 +41,7 @@ IMG_SHAPE = (100, 256)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
-class FakedditDataset(IterableDataset):
+class FakedditDataset(Dataset):
 
     def __init__(
         self,

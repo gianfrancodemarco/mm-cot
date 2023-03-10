@@ -56,63 +56,21 @@ class T5ForMultimodalGenerationService:
             eval_dataset=eval_set,
             data_collator=data_collator,
             tokenizer=self.tokenizer,
-            compute_metrics=self.compute_metrics_acc if self.args.prompt_format != "QCM-LE" else self.compute_metrics_rougel
+            compute_metrics=self.compute_metrics_acc if self.args.prompt_format != constants.PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value else self.compute_metrics_rougel
         )
 
     def evaluate(self, test_set):
         """ Generate the answer for the eval set """
 
-        self._seq2seq_existing_check() #TODO REMVOE
+        self._seq2seq_existing_check()  # TODO REMOVE
 
-        trainer = self.seq2seq_trainer
+        metrics = self.seq2seq_trainer.evaluate(eval_dataset=test_set)
 
-        metrics = trainer.evaluate(eval_dataset=test_set)
-        trainer.log_metrics("test", metrics)
-        trainer.save_metrics("test", metrics)
-        predict_results = trainer.predict(
-            test_dataset=test_set, max_length=self.args.output_len)
-        
-        preds, targets = extract_predictions_and_targets(
-            predict_results, self.args, self.tokenizer)
-        results_ans = {}
-        results_rationale = {}
-        results_reference = {}
-        num_fail = 0
-        test_qids = self.dataframe['qids']['test']
+        output_prediction_file = os.path.join(
+            self.save_dir, f"predictions_ans_test_{datetime.now().strftime('%H_%M_%S')}.json")
 
-        for idx, qid in enumerate(test_qids[:10]):
-            pred = preds[int(idx)]
-            ref = targets[int(idx)]
-            extract_pred = extract_ans(pred)
-            if extract_pred != "FAILED":
-                if extract_pred in self.args.options:
-                    extract_pred = self.args.options.index(extract_pred)
-                else:
-                    extract_pred = random.choice(
-                        range(0, len(self.args.options)))
-            else:
-                num_fail += 1
-                # random choose one option
-                extract_pred = random.choice(range(len(self.args.options)))
-            results_ans[str(qid)] = extract_pred
-            results_rationale[str(qid)] = pred
-            results_reference[str(qid)] = ref
-
-            scores = get_scores(results_ans, results_rationale, results_reference, constants.SCIENCEQA_PROBLEMS_PATH)
-            preds = [pred.strip() for pred in preds]
-
-            output_data = {
-                "num_fail": num_fail,
-                "scores": scores,
-                "preds": preds,
-                "labels": targets
-            }
-
-            output_prediction_file = os.path.join(
-                self.save_dir, f"predictions_ans_test_{datetime.now().strftime('%H_%M_%S')}.json")
-
-            with open(output_prediction_file, "w") as writer:
-                writer.write(json.dumps(output_data, indent=4))
+        with open(output_prediction_file, "w") as writer:
+            writer.write(json.dumps(metrics, indent=4))
 
     def inference(self, data):
         """Generate the rationale for the input data"""
@@ -127,8 +85,8 @@ class T5ForMultimodalGenerationService:
             self.model.config.length_penalty = 10.0
 
             out = self.model.generate(
-                batch[0]['input_ids'][None, :], 
-                image_ids=batch[0]['image_ids'][None, :], 
+                batch[0]['input_ids'][None, :],
+                image_ids=batch[0]['image_ids'][None, :],
             )
 
             predictions = self.tokenizer.batch_decode(
