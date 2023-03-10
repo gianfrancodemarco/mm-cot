@@ -211,7 +211,7 @@ class T5ForMultimodalGeneration(T5ForConditionalGeneration, ABC):
 
         # 2. prepare encoder args and encoder kwargs from model kwargs
         irrelevant_prefix = ["decoder_",
-                             "cross_attn", "use_cache", "image_ids"]
+                             "cross_attn", "use_cache", "image_ids", "labels"]
         encoder_kwargs = {
             argument: value
             for argument, value in model_kwargs.items()

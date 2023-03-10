@@ -21,7 +21,7 @@ def load_data_img(args):
         open(constants.SCIENCEQA_PROBLEMS_PATH))
     pid_splits = json.load(
         open(constants.SCIENCEQA_PID_SPLITS))
-    captions = json.load(open(args.caption_file))["captions"]
+    captions = []
     name_maps = json.load(open(constants.SCIENCEQA_NAME_MAP))
 
     # check

@@ -5,7 +5,7 @@ import random
 from src.models.t5_multimodal_generation.service import T5ForMultimodalGenerationService
 from src.models.t5_multimodal_generation.training_params import get_training_data
 from src.data.data import load_data_std, load_data_img
-from src.constants import PromptFormat
+from src.constants import PromptFormat, Task
 
 class ChainOfThought:
 
@@ -57,21 +57,12 @@ class ChainOfThought:
             self.t5_model.build_seq2seq_base_trainer(
                 self.train_set, self.eval_set)
 
-    def evaluate(self):
+    def run(self):
 
-        generate_answer = self.args.prompt_format in [
-            PromptFormat.QUESTION_CONTEXT_OPTIONS_SOLUTION_ANSWER.value,
-        ]
-
-        generate_rationale = self.args.prompt_format in [
-            PromptFormat.QUESTION_CONTEXT_OPTIONS_SOLUTION_ANSWER.value,
-            PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value,
-        ]
-
-        torch.cuda.empty_cache()
-
-        if generate_rationale:
-            self.t5_model.inference(self.eval_set)
-
-        if generate_answer:
+        if self.args.task == Task.TRAIN.value:
+            pass
+        elif self.args.task == Task.EVALUATE.value:
             self.t5_model.evaluate(self.test_set)
+        elif self.args.task == Task.INFER.value:
+            pass # predict on single sample
+

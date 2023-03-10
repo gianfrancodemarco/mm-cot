@@ -6,6 +6,7 @@ import evaluate
 import numpy as np
 from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer
 from transformers import T5Tokenizer
+from torch.utils.data import Dataset
 
 from datetime import datetime
 from src.data.science_qa_dataset_iterator import ScienceQADatasetIterator
@@ -59,18 +60,38 @@ class T5ForMultimodalGenerationService:
             compute_metrics=self.compute_metrics_acc if self.args.prompt_format != constants.PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value else self.compute_metrics_rougel
         )
 
-    def evaluate(self, test_set):
-        """ Generate the answer for the eval set """
+    def evaluate(self, dataset: Dataset):
+        """ Generate the textual output for the dataset and computes the metrics """
 
         self._seq2seq_existing_check()  # TODO REMOVE
 
-        metrics = self.seq2seq_trainer.evaluate(eval_dataset=test_set)
+        output = {
+            "metrics": [],
+            "predictions": [],
+            "targets": []
+        }
+
+        for elem in dataset:
+            
+            out = self.model.generate(
+                elem['input_ids'][None, :],
+                image_ids=elem['image_ids'][None, :],
+            )
+
+            prediction = self.tokenizer.batch_decode(
+                out, skip_special_tokens=True,
+                clean_up_tokenization_spaces=True
+            )
+
+            
+            output["predictions"].extend(prediction)
+            output["targets"].append(elem["labels"])
 
         output_prediction_file = os.path.join(
             self.save_dir, f"predictions_ans_test_{datetime.now().strftime('%H_%M_%S')}.json")
 
         with open(output_prediction_file, "w") as writer:
-            writer.write(json.dumps(metrics, indent=4))
+            writer.write(json.dumps(output, indent=4))
 
     def inference(self, data):
         """Generate the rationale for the input data"""
@@ -99,7 +120,7 @@ class T5ForMultimodalGenerationService:
             preds.extend(predictions)
 
         output_prediction_file = os.path.join(
-            self.save_dir, f"predictions_ans_eval_{datetime.now().strftime('%H_%M_%S')}.json")
+            self.save_dir, f"predictions_rel_eval_{datetime.now().strftime('%H_%M_%S')}.json")
 
         with open(output_prediction_file, "w") as writer:
             writer.write(json.dumps(preds, indent=4))
@@ -110,10 +131,12 @@ class T5ForMultimodalGenerationService:
                 "ERROR T5000001 | Fit model or if model exists build a seq2seq trainer")
         return True
 
-    def compute_metrics_rougel(self, eval_predictions):
+    def compute_metrics_rougel(self, output):
+
+        predictions, label_ids = output
 
         predictions, targets = extract_predictions_and_targets(
-            eval_predictions, self.args, self.tokenizer)
+            predictions, label_ids, self.tokenizer)
 
         metric = evaluate.load("rouge")
         decoded_predictions, decoded_labels = postprocess_text(
@@ -127,13 +150,15 @@ class T5ForMultimodalGenerationService:
         result["gen_len"] = np.mean(prediction_lens)
         return result
 
-    def compute_metrics_acc(self, eval_predictions):
+    def compute_metrics_acc(self, output):
         """
         Accuracy for answer inference
         """
 
+        predictions, label_ids = output
+
         predictions, targets = extract_predictions_and_targets(
-            eval_predictions, self.args, self.tokenizer)
+            predictions, label_ids, self.tokenizer)
         correct = 0
         assert len(predictions) == len(targets)
         for idx, pred in enumerate(predictions):

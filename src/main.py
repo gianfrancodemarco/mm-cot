@@ -31,7 +31,8 @@ if __name__ == '__main__':
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
+    
     chain_of_thought = ChainOfThought(args)
     chain_of_thought.load_data()
     chain_of_thought.load_model()
-    chain_of_thought.evaluate()
+    chain_of_thought.run()

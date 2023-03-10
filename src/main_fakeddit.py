@@ -54,5 +54,5 @@ if __name__ == '__main__':
         .set_eval_set(test_set) \
         .set_test_set(test_set) \
         .load_model() \
-        .evaluate()
+        .run()
     # chain_of_thought.evaluate()

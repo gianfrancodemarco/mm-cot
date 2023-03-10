@@ -111,12 +111,14 @@
           "--final_eval",
           "--prompt_format",
           "QCMG-A",
-          "--test_le",
-          "models/MM-CoT-UnifiedQA-base-Answer/predictions_ans_test.json",
+          // "--test_le",
+          // "models/MM-CoT-UnifiedQA-base-Rationale/predictions_ans_test.json",
           "--evaluate_dir",
           "models/MM-CoT-UnifiedQA-base-Answer",
-          "--caption_file",
-          "data/dataset/captions.json",
+          // "--caption_file",
+          // "data/dataset/captions.json",
+          "--task",
+          "EVALUATE"
       ]
     },
     {
@@ -145,11 +147,13 @@
           "--prompt_format",
           "QCMG-A",
           "--test_le",
-          "models/MM-CoT-UnifiedQA-base-Answer/predictions_ans_test.json",
+          "models/MM-CoT-UnifiedQA-base-Rationale/predictions_ans_test.json",
           "--evaluate_dir",
           "models/MM-CoT-UnifiedQA-base-Answer",
           "--caption_file",
           "data/dataset/captions.json",
+          "--task",
+          "EVALUATE"
       ]
     }
   ]

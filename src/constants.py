@@ -36,3 +36,10 @@ class PromptFormat(Enum):
     @classmethod
     def get_values(cls):
         return [e.value for e in cls]
+
+
+class Task(Enum):
+    """Possible model action"""
+    EVALUATE = "EVALUATE"
+    TRAIN = "TRAIN"
+    INFER = "INFER"

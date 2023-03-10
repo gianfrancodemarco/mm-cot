@@ -5,23 +5,14 @@ import nltk
 import torch
 
 
-def extract_predictions_and_targets(eval_predictions, args, tokenizer):
+def extract_predictions_and_targets(predictions, label_ids, tokenizer):
 
-    if args.use_generate:
-        predictions, targets = eval_predictions
-
-        # TODO check if necessary
-        if isinstance(predictions, tuple):
-            predictions = predictions[0]
-    else:
-        predictions = eval_predictions.predictions[0]
-        targets = eval_predictions.label_ids
-        predictions = predictions.argmax(axis=2)
+    predictions = predictions.argmax(axis=2)
 
     predictions = tokenizer.batch_decode(
         predictions, skip_special_tokens=True, clean_up_tokenization_spaces=True)
     targets = tokenizer.batch_decode(
-        targets, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+        label_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)
 
     return predictions, targets
 

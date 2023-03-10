@@ -1,4 +1,4 @@
-from src.constants import PromptFormat
+from src.constants import PromptFormat, Task
 import argparse
 
 
@@ -48,6 +48,7 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=42, help='random seed')
     parser.add_argument('--batch_size_in_memory', type=int, default=None,
                         help='Number of examples to load in memory at a given time. If the dataset is larger, it would be split in chunks of batch_size_in_memory elements')
+    parser.add_argument('--task', type=str, default=Task.INFER.value, help='Task to run')
 
     args = parser.parse_args()
 
