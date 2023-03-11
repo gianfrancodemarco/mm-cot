@@ -67,35 +67,25 @@ class ChainOfThought:
         self.test_set = test_set
         return self
 
-    def load_model(self):
-        if not self.tokenizer:
-            raise AttributeError(
-                "A tokenizer is required to load the model. Use set_tokenizer")
-
-        # Here we shouldn't need the models
-        run_training = self.args.evaluate_dir is None
-        if run_training:
-            self.t5_model.fit(self.train_set, self.eval_set)
-        else:
-            self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
-
+    def set_model(self, model):
+        self.model = model
         return self
 
     def run(self):
-
-        if self.args.task == Task.TRAIN.value:
-            pass
-        elif self.args.task == Task.EVALUATE.value:
-            self.evaluate(self.test_set)
-        elif self.args.task == Task.INFER.value:
-            pass  # predict on single sample
+        tasks_map = {
+            Task.TRAIN.value: self.train,
+            Task.EVALUATE.value: self.evaluate,
+            Task.INFER.value: self.infer
+        }
+        task = tasks_map.get(self.args.task)
+        task()
 
     def train(self):
         self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
         self.seq2seq_trainer.train()
         self.seq2seq_trainer.save_model(self.save_dir)
 
-    def evaluate(self, dataset: Dataset):
+    def evaluate(self):
         """ Generate the textual output for the dataset and computes the metrics """
 
         output = {
@@ -104,7 +94,7 @@ class ChainOfThought:
             "targets": []
         }
 
-        for elem in tqdm(dataset):
+        for elem in tqdm(self.eval_set):
 
             out = self.model.generate(
                 elem['input_ids'][None, :],

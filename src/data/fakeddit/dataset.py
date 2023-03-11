@@ -66,7 +66,7 @@ class FakedditDataset(Dataset):
 
     def _build_dataset(self) -> None:
 
-        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:50]):
+        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:10]):
             _input_ids, _attention_mask = self.get_input_ids(row)
 
             self.input_ids = torch.cat(

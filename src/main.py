@@ -14,17 +14,22 @@ from src.data.scienceQA.data import load_data
 from src.models.chain_of_thought import ChainOfThought
 from src.models.t5_multimodal_generation.training_params import \
     get_training_data
-
+from src.models.t5_multimodal_generation.training_params import (
+    get_t5_model)
+from src.models.t5_multimodal_generation.utils import get_backup_dir
 args = parse_args()
 
 
 def get_fakeddit_cot():
+
+    tokenizer = T5Tokenizer.from_pretrained(
+        pretrained_model_name_or_path=args.model)
+    model = get_t5_model(args, tokenizer, get_backup_dir(args))
+
     dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
     vision_features = np.load(
         constants.FAKEDDIT_VISION_FEATURES_PATH, allow_pickle=True)
 
-    tokenizer = T5Tokenizer.from_pretrained(
-        pretrained_model_name_or_path=args.model)
     test_set = FakedditDataset(
         dataframe=dataframe,
         tokenizer=tokenizer,
@@ -35,14 +40,15 @@ def get_fakeddit_cot():
         .set_tokenizer(tokenizer) \
         .set_eval_set(test_set) \
         .set_test_set(test_set) \
-        .load_model()
+        .set_model(model)
 
     return chain_of_thought
 
 
-def science_qa_cot():
+def get_science_qa_cot():
     tokenizer = T5Tokenizer.from_pretrained(
         pretrained_model_name_or_path=args.model)
+    model = get_t5_model(args, tokenizer, get_backup_dir(args))
 
     problems, qids, name_maps, image_features = load_data(args)
     dataframe = {
@@ -60,7 +66,7 @@ def science_qa_cot():
         .set_train_set(train_set) \
         .set_eval_set(eval_set) \
         .set_test_set(test_set) \
-        .load_model()
+        .set_model(model)
 
     return chain_of_thought
 
@@ -87,5 +93,9 @@ if __name__ == '__main__':
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
-    chain_of_thought = science_qa_cot()
-    chain_of_thought.run()
+    cot_map = {
+        constants.DatasetType.FAKEDDIT.value: get_fakeddit_cot,
+        constants.DatasetType.SCIENCEQA.value: get_science_qa_cot,
+    }
+    cot = cot_map.get(args.dataset)()
+    cot.run()

@@ -44,3 +44,8 @@ class Task(Enum):
     EVALUATE = "EVALUATE"
     TRAIN = "TRAIN"
     INFER = "INFER"
+
+
+class DatasetType(Enum):
+    FAKEDDIT = "FAKEDDIT"
+    SCIENCEQA = "SCIENCEQA"
