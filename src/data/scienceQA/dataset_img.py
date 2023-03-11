@@ -72,8 +72,6 @@ class ScienceQADatasetImg(ScienceQADatasetStd):
         """return the input ids, attention masks and target ids"""
 
         return {
-            "input_ids": self.source_ids[index].to(torch.long),
-            "attention_mask": self.source_masks[index].to(torch.long),
+            **super().__getitem__(index),
             "image_ids": self.image_ids[index].to(torch.float),
-            "labels": self.target_ids[index].to(torch.long).tolist(),
         }

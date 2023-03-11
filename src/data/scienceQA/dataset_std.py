@@ -47,6 +47,7 @@ class ScienceQADatasetStd(Dataset):
         self.source_ids = torch.tensor([]).to(device)
         self.source_masks = torch.tensor([]).to(device)
         self.target_ids = torch.tensor([]).to(device)
+        self.plain_targets = []
 
         if test_le is not None:
             test_le_data = json.load(open(test_le))["preds"]
@@ -69,6 +70,7 @@ class ScienceQADatasetStd(Dataset):
             source_mask = source["attention_mask"].squeeze().to(device)
 
             # TARGET
+            self.plain_targets.append(target)
             target = self.process_data(target, self.summ_len)
             target = target["input_ids"].squeeze().to(device)
 
@@ -90,6 +92,7 @@ class ScienceQADatasetStd(Dataset):
             "input_ids": self.source_ids[index].to(torch.long),
             "attention_mask": self.source_masks[index].to(torch.long),
             "labels": self.target_ids[index].to(torch.long).tolist(),
+            "plain_labels": self.plain_targets[index] 
         }
 
     def process_data(

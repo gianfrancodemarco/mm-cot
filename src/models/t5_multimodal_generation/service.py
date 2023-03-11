@@ -11,7 +11,6 @@ from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer, T5Tokenizer
 
 from src import constants
 from src.constants import PromptFormat
-from src.data.fakeddit.labels import convert_label_to_int, get_label_text
 from src.models.t5_multimodal_generation.training_params import (
     get_t5_model, get_training_args)
 from src.models.t5_multimodal_generation.utils import (extract_ans,
@@ -85,18 +84,7 @@ class T5ForMultimodalGenerationService:
             )
 
             output["predictions"].extend(prediction)
-
-            label = elem['labels']
-            if isinstance(label,list):
-                label_decoded = self.tokenizer.batch_decode(
-                    label, skip_special_tokens=True,
-                    clean_up_tokenization_spaces=True
-                )
-                label_text = ' '.join(label_decoded)
-                # label_text = label_text.replace("<pad>", "").strip()
-            else: 
-                label_text = get_label_text(convert_label_to_int(label))
-            output["targets"].append(label_text)
+            output["targets"].append(elem['plain_labels'])
 
         output["metrics"] = self._compute_metrics(output["predictions"], output["targets"])
 

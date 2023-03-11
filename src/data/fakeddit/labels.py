@@ -48,7 +48,7 @@ def get_label_column(labels_type: LabelsTypes) -> str:
         return "6_way_label"
 
 
-def convert_label_to_int(label: str) -> int:
+def convert_int_to_label(label: str) -> int:
     
     _map = {
         0: "A",

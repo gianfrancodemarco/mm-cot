@@ -4,16 +4,11 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import torch
-from PIL import Image
 from torch import Tensor
-from torch.utils.data import Dataset, IterableDataset
-from torchvision import transforms
+from torch.utils.data import Dataset
 from transformers import T5Tokenizer
-
-from src import constants
 from src.data.fakeddit.labels import (LabelsTypes, get_label_column,
-                                      get_options_text)
-
+                                      get_options_text, convert_int_to_label, get_label_text)
 # test_le: Probably it is the previously generated rationale, needed to inference the answer (so it will be null when)
 # inferencing the rationale
 
@@ -73,14 +68,11 @@ class FakedditDataset(Dataset):
 
         for index, row in enumerate(self.dataframe.to_dict(orient="records")[:50]):
             _input_ids, _attention_mask = self.get_input_ids(row)
-            #_labels = self.get_label_ids(row)
 
             self.input_ids = torch.cat(
                 (self.input_ids, _input_ids.unsqueeze(0)), 0)
             self.attention_masks = torch.cat(
                 (self.attention_masks, _attention_mask.unsqueeze(0)), 0)
-            # self.labels = torch.cat(
-            #     (self.labels, _labels.unsqueeze(0)), 0)
 
             if self.vision_features is not None:
                 _image_ids = self.get_image_ids(index)
@@ -117,20 +109,14 @@ class FakedditDataset(Dataset):
 
         return torch.tensor(image_ids).squeeze().to(device)
 
-    # def get_label_ids(self, row: dict) -> Tensor:
-    #     label_column = get_label_column(self.labels_type)
-    #     processed = self.process_data(str(row[label_column]), pad_to_max_length=False)
-    #     label_ids = processed["input_ids"].squeeze().to(device)
-    #     return label_ids
-
-    def get_label_ids(self, index: str) -> str:
+    def get_label(self, index: str) -> str:
         label_column = get_label_column(self.labels_type)
         return int(self.dataframe.iloc[index][label_column])
 
     def process_data(
             self,
             text,
-            pad_to_max_length = True
+            pad_to_max_length=True
     ):
         text = " ".join(str(text).split())
         return self.tokenizer.batch_encode_plus(
@@ -151,7 +137,8 @@ class FakedditDataset(Dataset):
         item = {
             "input_ids": self.input_ids[index].to(torch.long),
             "attention_mask": self.attention_masks[index].to(torch.long),
-            "labels":  self.get_label_ids(index),
+            #"labels":  self.get_label(index),
+            "plain_labels": get_label_text(convert_int_to_label(self.get_label(index)))
         }
 
         if self.image_ids is not None:
