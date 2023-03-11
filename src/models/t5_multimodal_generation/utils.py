@@ -3,18 +3,8 @@ import re
 
 import nltk
 import torch
-
-
-def extract_predictions_and_targets(predictions, label_ids, tokenizer):
-
-    predictions = predictions.argmax(axis=2)
-
-    predictions = tokenizer.batch_decode(
-        predictions, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-    targets = tokenizer.batch_decode(
-        label_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-
-    return predictions, targets
+import numpy as np
+from src.constants import PromptFormat
 
 
 def extract_ans(ans):
@@ -38,7 +28,7 @@ def postprocess_text(predictions, labels):
     return predictions, labels
 
 
-def make_backup_dir(args):
+def get_backup_dir(args):
     if args.evaluate_dir is not None:
         save_dir = args.evaluate_dir
     else:
@@ -49,3 +39,9 @@ def make_backup_dir(args):
             os.mkdir(save_dir)
 
     return save_dir
+
+
+def get_prediction_filename(args):
+    if args.prompt_format == PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value:
+        return "rationale"
+    return "answer"

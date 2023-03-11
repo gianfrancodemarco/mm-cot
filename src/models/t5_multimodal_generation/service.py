@@ -10,13 +10,14 @@ from tqdm import tqdm
 from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer, T5Tokenizer
 
 from src import constants
+from src.constants import PromptFormat
 from src.data.fakeddit.labels import convert_label_to_int, get_label_text
-from src.data.science_qa_dataset_iterator import ScienceQADatasetIterator
 from src.models.t5_multimodal_generation.training_params import (
     get_t5_model, get_training_args)
-from src.models.t5_multimodal_generation.utils import (
-    extract_ans, extract_predictions_and_targets, make_backup_dir,
-    postprocess_text)
+from src.models.t5_multimodal_generation.utils import (extract_ans,
+                                                       get_backup_dir,
+                                                       get_prediction_filename,
+                                                       postprocess_text)
 
 
 class T5ForMultimodalGenerationService:
@@ -25,10 +26,11 @@ class T5ForMultimodalGenerationService:
     def __init__(self, dataframe, args, tokenizer):
         self.args = args
         self.dataframe = dataframe
-        self.save_dir = make_backup_dir(args)
+        self.save_dir = get_backup_dir(args)
+        self.filename = get_prediction_filename(args)
         self.tokenizer = tokenizer or T5Tokenizer.from_pretrained(
             pretrained_model_name_or_path=self.args.model)
-
+        
     def fit(self, train_set, eval_set):
         self.build_seq2seq_base_trainer(train_set, eval_set)
         self.seq2seq_trainer.train()
@@ -64,8 +66,6 @@ class T5ForMultimodalGenerationService:
     def evaluate(self, dataset: Dataset):
         """ Generate the textual output for the dataset and computes the metrics """
 
-        self._seq2seq_existing_check()  # TODO REMOVE
-
         output = {
             "metrics": [],
             "predictions": [],
@@ -85,83 +85,70 @@ class T5ForMultimodalGenerationService:
             )
 
             output["predictions"].extend(prediction)
-            label_text = get_label_text(convert_label_to_int(elem['labels']))
+
+            label = elem['labels']
+            if isinstance(label,list):
+                label_decoded = self.tokenizer.batch_decode(
+                    label, skip_special_tokens=True,
+                    clean_up_tokenization_spaces=True
+                )
+                label_text = ' '.join(label_decoded)
+            else: 
+                label_text = get_label_text(convert_label_to_int(label))
             output["targets"].append(label_text)
-            
-        output["metrics"] = self.compute_metrics_acc(output["predictions"], output["targets"])
+
+        output["metrics"] = self._compute_metrics(output["predictions"], output["targets"])
 
         output_prediction_file = os.path.join(
-            self.save_dir, f"predictions_ans_test_{datetime.now().strftime('%H_%M_%S')}.json")
+            self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
 
         with open(output_prediction_file, "w") as writer:
             writer.write(json.dumps(output, indent=4))
 
-    def inference(self, data):
-        """Generate the rationale for the input data"""
+    def infer(self, sample):
+        # Extract EVALUATE common logic in a private method 
+        pass
 
-        self._seq2seq_existing_check()
-
-        preds = []
-
-        for batch in ScienceQADatasetIterator(dataset=data, batch_size=1):
-            self.model.config.max_length = 512
-            self.model.config.repetition_penalty = 10.0
-            self.model.config.length_penalty = 10.0
-
-            out = self.model.generate(
-                batch[0]['input_ids'][None, :],
-                image_ids=batch[0]['image_ids'][None, :],
-            )
-
-            predictions = self.tokenizer.batch_decode(
-                out, skip_special_tokens=True,
-                clean_up_tokenization_spaces=True
-            )
-
-            predictions = [pred.strip() for pred in predictions]
-
-            preds.extend(predictions)
-
-        output_prediction_file = os.path.join(
-            self.save_dir, f"predictions_rel_eval_{datetime.now().strftime('%H_%M_%S')}.json")
-
-        with open(output_prediction_file, "w") as writer:
-            writer.write(json.dumps(preds, indent=4))
-
+    def train(self, dataset: Dataset):
+        # Should use seq2seqTrain ??
+        # look at FIT method in this class
+        pass
+    
     def _seq2seq_existing_check(self):
         if not self.seq2seq_trainer:
             raise NotImplementedError(
                 "ERROR T5000001 | Fit model or if model exists build a seq2seq trainer")
         return True
 
-    def compute_metrics_rougel(self, output):
+    def _compute_metrics(self, predictions, targets):
+        if self.args.prompt_format == PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value:
+            return self.compute_metrics_rougel(predictions, targets)
+        return self.compute_metrics_acc(predictions, targets)
 
-        predictions, label_ids = output
+    def compute_metrics_rougel(self, predictions, targets):
 
-        predictions, targets = extract_predictions_and_targets(
-            predictions, label_ids, self.tokenizer)
+        """
+        ROUGE-L metric for Rational generation
+        """
 
         metric = evaluate.load("rouge")
-        decoded_predictions, decoded_labels = postprocess_text(
+        predictions, labels = postprocess_text(
             predictions, targets)
 
-        result = metric.compute(predictions=decoded_predictions,
-                                references=decoded_labels, use_stemmer=True)
+        result = metric.compute(predictions=predictions,
+                                references=labels, use_stemmer=True)
         result = {k: round(v * 100, 4) for k, v in result.items()}
         prediction_lens = [np.count_nonzero(
             pred != self.tokenizer.pad_token_id) for pred in predictions]
         result["gen_len"] = np.mean(prediction_lens)
-        return result
+        return {'rouge-l': result}
 
     def compute_metrics_acc(self, predictions, targets):
+        
         """
-        Accuracy for answer inference
+        Accuracy for Answer inference
         """
 
-        #predictions, label_ids = output
-
-        # predictions, targets = extract_predictions_and_targets(
-        #     predictions, label_ids, self.tokenizer)
         correct = 0
         assert len(predictions) == len(targets)
         for idx, pred in enumerate(predictions):
@@ -171,4 +158,4 @@ class T5ForMultimodalGenerationService:
             best_option = extract_pred
             if reference == best_option:
                 correct += 1
-        return {'accuracy': 1.0 * correct / len(targets)}
+        return {'accuracy': float(correct) / len(targets)}

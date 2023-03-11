@@ -49,7 +49,7 @@ def get_label_column(labels_type: LabelsTypes) -> str:
 
 
 def convert_label_to_int(label: str) -> int:
-
+    
     _map = {
         0: "A",
         1: "B",
