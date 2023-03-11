@@ -1,10 +1,47 @@
 import os
 import re
 
+import evaluate
 import nltk
-import torch
 import numpy as np
+import torch
+
 from src.constants import PromptFormat
+
+
+def compute_metrics_rougel(tokenizer, predictions, targets):
+    """
+    ROUGE-L metric for Rational generation
+    """
+
+    metric = evaluate.load("rouge")
+    predictions, labels = postprocess_text(
+        predictions, targets)
+
+    result = metric.compute(predictions=predictions,
+                            references=labels, use_stemmer=True)
+    result = {k: round(v * 100, 4) for k, v in result.items()}
+    prediction_lens = [np.count_nonzero(
+        pred != tokenizer.pad_token_id) for pred in predictions]
+    result["gen_len"] = np.mean(prediction_lens)
+    return {'rouge-l': result}
+
+
+def compute_metrics_acc(tokenizer, predictions, targets):
+    """
+    Accuracy for Answer inference
+    """
+
+    correct = 0
+    assert len(predictions) == len(targets)
+    for idx, pred in enumerate(predictions):
+        reference = targets[idx]
+        reference = extract_ans(reference)
+        extract_pred = extract_ans(pred)
+        best_option = extract_pred
+        if reference == best_option:
+            correct += 1
+    return {'accuracy': float(correct) / len(targets)}
 
 
 def extract_ans(ans):

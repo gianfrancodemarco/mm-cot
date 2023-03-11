@@ -6,7 +6,7 @@ from src.models.t5_multimodal_generation.model import T5ForConditionalGeneration
 
 
 def get_t5_model(args, tokenizer: T5Tokenizer, save_dir: str):
-    if is_img_type_knonw(args):
+    if is_img_type_known(args):
         padding_idx = tokenizer._convert_token_to_id(tokenizer.pad_token)
         patch_size = img_shape[args.img_type]
         model = T5ForMultimodalGeneration.from_pretrained(
@@ -24,7 +24,7 @@ def get_training_data(args, dataframe, tokenizer):
     test_qids = qids['test']
     val_qids = qids['val']
 
-    if is_img_type_knonw(args):
+    if is_img_type_known(args):
         name_maps = dataframe['name_maps']
         image_features = dataframe['image_features']
 
@@ -137,6 +137,6 @@ def get_training_args(args, save_dir):
     return training_args
 
 
-def is_img_type_knonw(args):
+def is_img_type_known(args):
     img_type = args.img_type
     return img_type in ['detr', 'clip', 'resnet']
