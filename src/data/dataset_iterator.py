@@ -1,9 +1,9 @@
-from src.data.science_qa_dataset_std import ScienceQADatasetStd
+from torch.utils.data import Dataset
 
 
-class ScienceQADatasetIterator:
+class DatasetIterator:
 
-    def __init__(self, dataset: ScienceQADatasetStd, batch_size: int = 100):
+    def __init__(self, dataset: Dataset, batch_size: int = 100):
         self._dataset = dataset
         self.batch_size = batch_size if batch_size else len(self._dataset)
         self.num_batches = int(len(self._dataset) / self.batch_size)

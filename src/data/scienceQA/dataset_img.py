@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from src.data.science_qa_dataset_std import ScienceQADatasetStd
+from src.data.scienceQA.dataset_std import ScienceQADatasetStd
 
 # TODO img_shape should not be here!
 img_shape = {

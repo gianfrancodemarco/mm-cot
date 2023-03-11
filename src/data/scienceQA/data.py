@@ -5,18 +5,10 @@ import numpy as np
 from zipfile import ZipFile
 from src import constants
 
-def load_data_std(args):
-    problems = json.load(
-        open(os.path.join(args.data_root, 'scienceqa/problems.json')))
-    pid_splits = json.load(
-        open(os.path.join(args.data_root, 'scienceqa/pid_splits.json')))
-    captions = json.load(open(args.caption_file))["captions"]
 
-    qids = get_qids(args, captions, pid_splits, problems)
-    return problems, qids,
-
-
-def load_data_img(args):
+def load_data(args):
+    name_maps = None
+    image_features = None
     problems = json.load(
         open(constants.SCIENCEQA_PROBLEMS_PATH))
     pid_splits = json.load(

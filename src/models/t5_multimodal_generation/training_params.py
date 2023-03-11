@@ -1,7 +1,7 @@
 from transformers import T5Tokenizer, Seq2SeqTrainingArguments
 
-from src.data.science_qa_dataset_img import ScienceQADatasetImg, img_shape
-from src.data.science_qa_dataset_std import ScienceQADatasetStd
+from src.data.scienceQA.dataset_img import ScienceQADatasetImg, img_shape
+from src.data.scienceQA.dataset_std import ScienceQADatasetStd
 from src.models.t5_multimodal_generation.model import T5ForConditionalGeneration, T5ForMultimodalGeneration
 
 
