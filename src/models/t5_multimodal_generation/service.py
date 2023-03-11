@@ -93,6 +93,7 @@ class T5ForMultimodalGenerationService:
                     clean_up_tokenization_spaces=True
                 )
                 label_text = ' '.join(label_decoded)
+                # label_text = label_text.replace("<pad>", "").strip()
             else: 
                 label_text = get_label_text(convert_label_to_int(label))
             output["targets"].append(label_text)
