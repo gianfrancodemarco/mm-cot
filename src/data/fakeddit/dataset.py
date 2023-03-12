@@ -34,7 +34,7 @@ DEFAULT_PROMPT = """Question: Which of the given options better reflects the new
 
 IMG_SHAPE = (100, 256)
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cpu' #'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class FakedditDataset(Dataset):
@@ -66,7 +66,7 @@ class FakedditDataset(Dataset):
 
     def _build_dataset(self) -> None:
 
-        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:10]):
+        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:500]):
             _input_ids, _attention_mask = self.get_input_ids(row)
 
             self.input_ids = torch.cat(
@@ -145,6 +145,7 @@ class FakedditDataset(Dataset):
             item = {
                 **item,
                 "image_ids": self.image_ids[index].to(torch.float)
+                #"image_ids": torch.zeros(IMG_SHAPE).to(torch.float) FOR EXCLUDE VISION FEATURES
             }
 
         return item
