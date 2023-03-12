@@ -12,11 +12,10 @@ from src.args_parser import parse_args
 from src.data.fakeddit.dataset import FakedditDataset
 from src.data.scienceQA.data import load_data
 from src.models.chain_of_thought import ChainOfThought
-from src.models.t5_multimodal_generation.training_params import \
-    get_training_data
 from src.models.t5_multimodal_generation.training_params import (
-    get_t5_model)
+    get_t5_model, get_training_data)
 from src.models.t5_multimodal_generation.utils import get_backup_dir
+
 args = parse_args()
 
 

@@ -1,5 +1,6 @@
-from src.constants import PromptFormat, Task
 import argparse
+
+from src.constants import PromptFormat, Task
 
 
 def parse_args():
