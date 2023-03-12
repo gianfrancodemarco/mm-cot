@@ -1,0 +1,136 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "Main Fakeddit Rational Generation",
+      "type": "python",
+      "request": "launch",
+      "program": "${cwd}/src/main.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "args": [
+        "--data_root",
+        "data/dataset",
+        "--user",
+        "msg rationale",
+        "--img_type",
+        "detr",
+        "--output_len",
+        "512",
+        "--final_eval",
+        "--prompt_format",
+        "QCM-LE",
+        "--evaluate_dir",
+        "models/rationale",
+        "--data_root",
+        "data/dataset",
+        "--caption_file",
+        "data/dataset/captions.json",
+        "--evaluate_dir",
+        "models/MM-CoT-UnifiedQA-base-Rationale",
+        "--task",
+        "EVALUATE",
+        "--dataset",
+        "FAKEDDIT"
+      ]
+    },
+    {
+      "name": "Main ScienceQA Rational Generation",
+      "type": "python",
+      "request": "launch",
+      "program": "${cwd}/src/main.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "args": [
+        "--data_root",
+        "data/dataset",
+        "--user",
+        "msg rationale",
+        "--img_type",
+        "detr",
+        "--output_len",
+        "512",
+        "--final_eval",
+        "--prompt_format",
+        "QCM-LE",
+        "--data_root",
+        "data/dataset",
+        "--caption_file",
+        "data/dataset/captions.json",
+        "--evaluate_dir",
+        "models/MM-CoT-UnifiedQA-base-Rationale",
+        "--task",
+        "EVALUATE",
+        "--dataset",
+        "SCIENCEQA"
+      ]
+    },
+    {
+      "name": "Main Fakeddit Answer",
+      "type": "python",
+      "request": "launch",
+      "program": "${cwd}/src/main.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "args": [
+        "--user_msg",
+        "answer",
+        "--img_type",
+        "detr",
+        "--output_len",
+        "64",
+        "--final_eval",
+        "--prompt_format",
+        "QCMG-A",
+        // "--test_le",
+        // "models/MM-CoT-UnifiedQA-base-Rationale/predictions_ans_test.json",
+        "--evaluate_dir",
+        "models/MM-CoT-UnifiedQA-base-Answer",
+        "--task",
+        "EVALUATE",
+        "--dataset",
+        "FAKEDDIT"
+      ]
+    },
+    {
+      "name": "Main ScienceQA Answer",
+      "type": "python",
+      "request": "launch",
+      "program": "${cwd}/src/main.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "args": [
+        "--user_msg",
+        "answer",
+        "--img_type",
+        "detr",
+        "--output_len",
+        "64",
+        "--final_eval",
+        "--prompt_format",
+        "QCMG-A",
+        "--test_le",
+        "models/MM-CoT-UnifiedQA-base-Rationale/predictions_ans_test.json",
+        "--evaluate_dir",
+        "models/MM-CoT-UnifiedQA-base-Answer",
+        "--caption_file",
+        "data/dataset/captions.json",
+        "--task",
+        "EVALUATE",
+        "--dataset",
+        "SCIENCEQA"
+      ]
+    }
+  ]
+}

@@ -6,17 +6,14 @@ import copy
 import os
 import warnings
 from abc import ABC
-from typing import Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import torch
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from transformers import T5Config, T5ForConditionalGeneration
-from transformers.modeling_outputs import (
-    BaseModelOutput,
-    Seq2SeqLMOutput,
-)
-from transformers.models.t5.modeling_t5 import T5Stack, __HEAD_MASK_WARNING_MSG
+from transformers.modeling_outputs import BaseModelOutput, Seq2SeqLMOutput
+from transformers.models.t5.modeling_t5 import __HEAD_MASK_WARNING_MSG, T5Stack
 
 
 class T5ForMultimodalGeneration(T5ForConditionalGeneration, ABC):
@@ -201,3 +198,57 @@ class T5ForMultimodalGeneration(T5ForConditionalGeneration, ABC):
             encoder_hidden_states=encoder_outputs.hidden_states,
             encoder_attentions=encoder_outputs.attentions,
         )
+
+    def _prepare_encoder_decoder_kwargs_for_generation(
+        self, inputs_tensor: torch.Tensor, model_kwargs, model_input_name: Optional[str] = None
+    ) -> Dict[str, Any]:
+        # 1. get encoder
+        encoder = self.get_encoder()
+
+        # 2. prepare encoder args and encoder kwargs from model kwargs
+        irrelevant_prefix = ["decoder_",
+                             "cross_attn", "use_cache", "image_ids", "labels"]
+        encoder_kwargs = {
+            argument: value
+            for argument, value in model_kwargs.items()
+            if not any(argument.startswith(p) for p in irrelevant_prefix)
+        }
+
+        # 3. make sure that encoder returns `ModelOutput`
+        model_input_name = model_input_name if model_input_name is not None else self.main_input_name
+        encoder_kwargs["return_dict"] = True
+        encoder_kwargs[model_input_name] = inputs_tensor
+
+        model_kwargs["encoder_outputs"] = encoder(
+            **encoder_kwargs)
+
+        return model_kwargs
+
+    def prepare_inputs_for_generation(
+        self,
+        input_ids,
+        past_key_values=None,
+        attention_mask=None,
+        head_mask=None,
+        decoder_head_mask=None,
+        cross_attn_head_mask=None,
+        use_cache=None,
+        encoder_outputs=None,
+        **kwargs
+    ):
+
+        # cut decoder_input_ids if past is used
+        if past_key_values is not None:
+            input_ids = input_ids[:, -1:]
+
+        return {
+            "decoder_input_ids": input_ids,
+            "past_key_values": past_key_values,
+            "encoder_outputs": encoder_outputs,
+            "attention_mask": attention_mask,
+            "head_mask": head_mask,
+            "decoder_head_mask": decoder_head_mask,
+            "cross_attn_head_mask": cross_attn_head_mask,
+            "use_cache": use_cache,
+            "image_ids": kwargs.get("image_ids")
+        }

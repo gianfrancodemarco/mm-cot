@@ -1,5 +1,6 @@
-from src.constants import PromptFormat
 import argparse
+
+from src.constants import PromptFormat, Task
 
 
 def parse_args():
@@ -12,10 +13,10 @@ def parse_args():
                         default=["A", "B", "C", "D", "E"])
     parser.add_argument('--epoch', type=int, default=20)
     parser.add_argument('--lr', type=float, default=5e-5)
-    parser.add_argument('--bs', type=int, default=16)
+    parser.add_argument('--bs', type=int, default=8)
     parser.add_argument('--input_len', type=int, default=512)
     parser.add_argument('--output_len', type=int, default=64)
-    parser.add_argument('--eval_bs', type=int, default=16)
+    parser.add_argument('--eval_bs', type=int, default=4)
     parser.add_argument('--eval_acc', type=int, default=None,
                         help='evaluate accumulation step')
     parser.add_argument('--train_split', type=str, default='train',
@@ -48,6 +49,8 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=42, help='random seed')
     parser.add_argument('--batch_size_in_memory', type=int, default=None,
                         help='Number of examples to load in memory at a given time. If the dataset is larger, it would be split in chunks of batch_size_in_memory elements')
+    parser.add_argument('--task', type=str, default=Task.INFER.value, help='Task to run')
+    parser.add_argument('--dataset', type=str, default="SCIENCEQA")
 
     args = parser.parse_args()
 

@@ -1,29 +1,47 @@
 import os
 import re
 
+import evaluate
 import nltk
+import numpy as np
 import torch
 
+from src.constants import PromptFormat
 
-def extract_predictions_and_targets(eval_predictions, args, tokenizer):
 
-    if args.use_generate:
-        predictions, targets = eval_predictions
+def compute_metrics_rougel(tokenizer, predictions, targets):
+    """
+    ROUGE-L metric for Rational generation
+    """
 
-        # TODO check if necessary
-        if isinstance(predictions, tuple):
-            predictions = predictions[0]
-    else:
-        predictions = eval_predictions.predictions[0]
-        targets = eval_predictions.label_ids
-        predictions = predictions.argmax(axis=2)
+    metric = evaluate.load("rouge")
+    predictions, labels = postprocess_text(
+        predictions, targets)
 
-    predictions = tokenizer.batch_decode(
-        predictions, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-    targets = tokenizer.batch_decode(
-        targets, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+    result = metric.compute(predictions=predictions,
+                            references=labels, use_stemmer=True)
+    result = {k: round(v * 100, 4) for k, v in result.items()}
+    prediction_lens = [np.count_nonzero(
+        pred != tokenizer.pad_token_id) for pred in predictions]
+    result["gen_len"] = np.mean(prediction_lens)
+    return {'rouge-l': result}
 
-    return predictions, targets
+
+def compute_metrics_acc(tokenizer, predictions, targets):
+    """
+    Accuracy for Answer inference
+    """
+
+    correct = 0
+    assert len(predictions) == len(targets)
+    for idx, pred in enumerate(predictions):
+        reference = targets[idx]
+        reference = extract_ans(reference)
+        extract_pred = extract_ans(pred)
+        best_option = extract_pred
+        if reference == best_option:
+            correct += 1
+    return {'accuracy': float(correct) / len(targets)}
 
 
 def extract_ans(ans):
@@ -47,7 +65,7 @@ def postprocess_text(predictions, labels):
     return predictions, labels
 
 
-def make_backup_dir(args):
+def get_backup_dir(args):
     if args.evaluate_dir is not None:
         save_dir = args.evaluate_dir
     else:
@@ -58,3 +76,9 @@ def make_backup_dir(args):
             os.mkdir(save_dir)
 
     return save_dir
+
+
+def get_prediction_filename(args):
+    if args.prompt_format == PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value:
+        return "rationale"
+    return "answer"

@@ -1,12 +1,13 @@
-from transformers import T5Tokenizer, Seq2SeqTrainingArguments
+from transformers import Seq2SeqTrainingArguments, T5Tokenizer
 
-from src.data.science_qa_dataset_img import ScienceQADatasetImg, img_shape
-from src.data.science_qa_dataset_std import ScienceQADatasetStd
-from src.models.t5_multimodal_generation.model import T5ForConditionalGeneration, T5ForMultimodalGeneration
+from src.data.scienceQA.dataset_img import ScienceQADatasetImg, img_shape
+from src.data.scienceQA.dataset_std import ScienceQADatasetStd
+from src.models.t5_multimodal_generation.model import (
+    T5ForConditionalGeneration, T5ForMultimodalGeneration)
 
 
 def get_t5_model(args, tokenizer: T5Tokenizer, save_dir: str):
-    if is_img_type_knonw(args):
+    if is_img_type_known(args):
         padding_idx = tokenizer._convert_token_to_id(tokenizer.pad_token)
         patch_size = img_shape[args.img_type]
         model = T5ForMultimodalGeneration.from_pretrained(
@@ -24,23 +25,43 @@ def get_training_data(args, dataframe, tokenizer):
     test_qids = qids['test']
     val_qids = qids['val']
 
-    if is_img_type_knonw(args):
+    if is_img_type_known(args):
         name_maps = dataframe['name_maps']
         image_features = dataframe['image_features']
 
         train_set = None
+        # train_set = ScienceQADatasetImg(
+        #     problems,
+        #     train_qids,
+        #     tokenizer,
+        #     args.input_len,
+        #     args.output_len,
+        #     args,
+        #     image_features=image_features,
+        #     name_maps=name_maps
+        # )
         eval_set = ScienceQADatasetImg(
             problems,
             val_qids,
-            name_maps,
             tokenizer,
             args.input_len,
             args.output_len,
             args,
-            image_features,
-            args.eval_le,
+            image_features=image_features,
+            test_le=args.eval_le,
+            name_maps=name_maps
         )
-        test_set = None
+        test_set = ScienceQADatasetImg(
+            problems,
+            test_qids,
+            tokenizer,
+            args.input_len,
+            args.output_len,
+            args,
+            image_features=image_features,
+            test_le=args.test_le,
+            name_maps=name_maps
+        )
     else:
         train_set = ScienceQADatasetStd(
             problems,
@@ -117,6 +138,6 @@ def get_training_args(args, save_dir):
     return training_args
 
 
-def is_img_type_knonw(args):
+def is_img_type_known(args):
     img_type = args.img_type
     return img_type in ['detr', 'clip', 'resnet']
