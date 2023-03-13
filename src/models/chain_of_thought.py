@@ -3,6 +3,7 @@ import os
 import random
 from datetime import datetime
 
+import mlflow
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -88,32 +89,44 @@ class ChainOfThought:
     def evaluate(self):
         """ Generate the textual output for the dataset and computes the metrics """
 
-        output = {
-            "metrics": [],
-            "predictions": [],
-            "targets": []
-        }
+        run_name = f"{self.filename} || {self.args.img_type}".upper()
+        with mlflow.start_run(run_name=run_name):
 
-        for elem in tqdm(self.eval_set):
+            output = {
+                "metrics": [],
+                "predictions": [],
+                "targets": []
+            }
 
-            out = self.model.generate(
-                elem['input_ids'][None, :],
-                image_ids=elem['image_ids'][None, :],
-            )
+            for elem in tqdm(self.eval_set):
 
-            prediction = self.tokenizer.batch_decode(
-                out, skip_special_tokens=True,
-                clean_up_tokenization_spaces=True
-            )
+                out = self.model.generate(
+                    elem['input_ids'][None, :],
+                    image_ids=elem['image_ids'][None, :],
+                )
 
-            output["predictions"].extend(prediction)
-            output["targets"].append(elem['plain_labels'])
+                prediction = self.tokenizer.batch_decode(
+                    out, skip_special_tokens=True,
+                    clean_up_tokenization_spaces=True
+                )
 
-        output["metrics"] = self._compute_metrics(
-            output["predictions"], output["targets"])
+                output["predictions"].extend(prediction)
+                output["targets"].append(elem['plain_labels'])
 
-        output_prediction_file = os.path.join(
-            self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
+            output["metrics"] = self._compute_metrics(
+                output["predictions"], output["targets"])
+
+            output_prediction_file = os.path.join(
+                self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
+
+            log_params = {
+                **output["metrics"],
+                "img_type" : self.args.img_type,
+                "output": self.filename,
+            }
+
+            mlflow.log_params(log_params)
+            mlflow.end_run()
 
         with open(output_prediction_file, "w") as writer:
             writer.write(json.dumps(output, indent=4))
