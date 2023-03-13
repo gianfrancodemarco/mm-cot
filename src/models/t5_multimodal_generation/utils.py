@@ -6,6 +6,7 @@ import nltk
 import numpy as np
 import torch
 
+from constants import ModelOutput
 from src.constants import PromptFormat
 
 
@@ -80,5 +81,5 @@ def get_backup_dir(args):
 
 def get_prediction_filename(args):
     if args.prompt_format == PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value:
-        return "rationale"
-    return "answer"
+        return ModelOutput.RATIONALE.value
+    return ModelOutput.ANSWER.value

@@ -49,3 +49,7 @@ class Task(Enum):
 class DatasetType(Enum):
     FAKEDDIT = "FAKEDDIT"
     SCIENCEQA = "SCIENCEQA"
+
+class ModelOutput(Enum):
+    RATIONALE = "rationale"
+    ANSWER = "answer"

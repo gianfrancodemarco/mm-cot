@@ -15,6 +15,7 @@ from src.models.chain_of_thought import ChainOfThought
 from src.models.t5_multimodal_generation.training_params import (
     get_t5_model, get_training_data)
 from src.models.t5_multimodal_generation.utils import get_backup_dir
+from dotenv import load_dotenv
 
 args = parse_args()
 
@@ -74,6 +75,8 @@ if __name__ == '__main__':
 
     # import nltk
     # nltk.download('punkt')
+
+    load_dotenv(override=True)
 
     # training logger to log training progress
     training_logger = Table(
