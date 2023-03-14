@@ -18,9 +18,10 @@ from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
                                                        compute_metrics_rougel,
                                                        get_backup_dir,
                                                        get_prediction_filename)
+from src.runner.runner import Runner
 
 
-class ChainOfThought:
+class ChainOfThought(Runner):
 
     def __init__(
         self,
@@ -86,50 +87,40 @@ class ChainOfThought:
         self.seq2seq_trainer.train()
         self.seq2seq_trainer.save_model(self.save_dir)
 
-    def evaluate(self):
-        """ Generate the textual output for the dataset and computes the metrics """
+    def evaluate(self) -> dict:
+        """ Generate the textual output for the dataset and returns the metrics """
 
-        run_name = f"{self.filename} || {self.args.img_type}".upper()
-        with mlflow.start_run(run_name=run_name):
+        output = {
+            "metrics": [],
+            "predictions": [],
+            "targets": []
+        }
 
-            output = {
-                "metrics": [],
-                "predictions": [],
-                "targets": []
-            }
+        for elem in tqdm(self.eval_set):
 
-            for elem in tqdm(self.eval_set):
+            out = self.model.generate(
+                elem['input_ids'][None, :],
+                image_ids=elem['image_ids'][None, :],
+            )
 
-                out = self.model.generate(
-                    elem['input_ids'][None, :],
-                    image_ids=elem['image_ids'][None, :],
-                )
+            prediction = self.tokenizer.batch_decode(
+                out, skip_special_tokens=True,
+                clean_up_tokenization_spaces=True
+            )
 
-                prediction = self.tokenizer.batch_decode(
-                    out, skip_special_tokens=True,
-                    clean_up_tokenization_spaces=True
-                )
+            output["predictions"].extend(prediction)
+            output["targets"].append(elem['plain_labels'])
 
-                output["predictions"].extend(prediction)
-                output["targets"].append(elem['plain_labels'])
+        output["metrics"] = self._compute_metrics(
+            output["predictions"], output["targets"])
 
-            output["metrics"] = self._compute_metrics(
-                output["predictions"], output["targets"])
-
-            output_prediction_file = os.path.join(
-                self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
-
-            log_params = {
-                **output["metrics"],
-                "img_type" : self.args.img_type,
-                "output": self.filename,
-            }
-
-            mlflow.log_params(log_params)
-            mlflow.end_run()
+        output_prediction_file = os.path.join(
+            self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
 
         with open(output_prediction_file, "w") as writer:
             writer.write(json.dumps(output, indent=4))
+
+        return output["metrics"]
 
     def infer(self, sample):
         # Extract EVALUATE common logic in a private method
