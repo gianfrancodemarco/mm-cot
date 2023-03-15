@@ -89,4 +89,4 @@ with Pool(n) as p:
 
 import shutil
 shutil.make_archive('data/fakeddit/images', 'zip', 'data/fakeddit/images')
-rm -r data/fakeddit/images
+# rm -r data/fakeddit/images
