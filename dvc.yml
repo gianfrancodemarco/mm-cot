@@ -1,3 +1,9 @@
 stages:
   dowload_data:
-    cmd: python dowload_data.py
+    cmd: python data/dowload.py
+  feature_extraction:
+    deps:
+      - src/data/fakeeddit/
+    cmd: python fakeddit/features_extractor.py
+    params:
+      - train.GTZAN.model-name
