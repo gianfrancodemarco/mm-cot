@@ -1,0 +1,2 @@
+feature_extraction:
+  model-name: 'facebook/detr-resnet-101-dc5'
