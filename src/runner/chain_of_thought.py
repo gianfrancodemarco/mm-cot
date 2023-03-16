@@ -96,11 +96,15 @@ class ChainOfThought(Runner):
             "targets": []
         }
 
-        for elem in tqdm(self.eval_set):
+        for elem in tqdm(self.test_set):
+
+            kwargs = {}
+            if 'image_ids' in elem:
+                kwargs['image_ids'] = elem['image_ids'][None, :]
 
             out = self.model.generate(
                 elem['input_ids'][None, :],
-                image_ids=elem['image_ids'][None, :],
+                **kwargs
             )
 
             prediction = self.tokenizer.batch_decode(
