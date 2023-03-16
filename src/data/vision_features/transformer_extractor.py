@@ -12,8 +12,8 @@ from dvc.exceptions import DvcException
 
 class VisionFeaturesExtractor:
     
-    def __init__(self):
-        model_name = self._get_model_name()
+    def __init__(self, model_name: str = None):
+        model_name = model_name if model_name else self._get_model_name()
         self.image_processor = AutoImageProcessor.from_pretrained(model_name)
         self.model = DetrForObjectDetection.from_pretrained(model_name) #change model loader
         
@@ -27,9 +27,8 @@ class VisionFeaturesExtractor:
 
         return model_name
 
-    def extract_vision_features(self, list_images_path: list, save_path:str):
+    def extract_vision_features(self, list_images_path: list, file_path:str):
         
-        file_path = os.path.join(save_path, "vision_features")
         vision_features = self.load_checkpoint(file_path)
         checkpoint = len(vision_features)
 
@@ -66,6 +65,7 @@ class VisionFeaturesExtractor:
         
         return vision_features
 
+"""
 vision_features_extrctor = VisionFeaturesExtractor()
 save_path = os.path.join(constants.FAKEDDIT_DATASET_PARTIAL_PATH, "vision_features.npy")
 checkpoint = len(vision_features_extrctor.load_checkpoint(save_path))
@@ -73,3 +73,4 @@ dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
 list_img_path = [ os.path.join(constants.FAKEDDIT_IMG_DATASET_PATH, f"{row['id']}.jpg") for row in dataframe.to_dict(orient="records")[checkpoint:]]
 
 vision_features_extrctor.extract_vision_features(list_img_path, save_path)
+"""
