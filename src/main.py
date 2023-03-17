@@ -29,7 +29,6 @@ def get_fakeddit_cot():
     dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
     vision_features = np.load(
         constants.FAKEDDIT_VISION_FEATURES_PATH, allow_pickle=True)
-    vision_features = np.load("prova.npy", allow_pickle=True)
 
     test_set = FakedditDataset(
         dataframe=dataframe,
