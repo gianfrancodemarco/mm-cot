@@ -6,9 +6,9 @@ from src.data.vision_features.transformer_extractor import VisionFeaturesExtract
 
 def load_data():
     dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
-    train_data = dataframe[:600]
-    validation_data = dataframe[:100]
-    test_data = dataframe[:300]
+    train_data = dataframe[:1200]
+    validation_data = dataframe[:200]
+    test_data = dataframe[:600]
     return train_data, validation_data, test_data
 
 
