@@ -19,8 +19,10 @@ SCIENCEQA_DETR = os.path.join(SCIENCEQA_VISION_FEATURES_PATH, "detr.npy")
 FAKEDDIT_DATASET_PARTIAL_PATH = os.path.join(DATA_PATH, "fakeddit", "partial")
 FAKEDDIT_DATASET_PATH = os.path.join(FAKEDDIT_DATASET_PARTIAL_PATH, "dataset.csv")
 FAKEDDIT_IMG_DATASET_PATH = os.path.join(DATA_PATH, "fakeddit", "images")
-FAKEDDIT_VISION_FEATURES_PATH = os.path.join(FAKEDDIT_DATASET_PARTIAL_PATH, "vision_features.npy")
-FAKEDDIT_VISION_FEATURES_SUB_PATH = os.path.join(FAKEDDIT_DATASET_PARTIAL_PATH, "vision_features_sub.npy")
+
+FAKEDDIT_VISION_FEATURES_FOLDER_PATH = os.path.join(FAKEDDIT_DATASET_PARTIAL_PATH, "vision_features")
+FAKEDDIT_VISION_FEATURES_PATH = os.path.join(FAKEDDIT_VISION_FEATURES_FOLDER_PATH, "vision_features.npy")
+FAKEDDIT_VISION_FEATURES_SUB_PATH = os.path.join(FAKEDDIT_VISION_FEATURES_FOLDER_PATH, "vision_features_600.npy")
 
 class PromptFormat(Enum):
     """
