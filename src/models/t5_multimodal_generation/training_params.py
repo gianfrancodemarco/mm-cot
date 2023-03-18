@@ -94,10 +94,10 @@ def get_training_data(args, dataframe, tokenizer):
     return train_set, eval_set, test_set
 
 
-def get_training_args(args, save_dir):
+def get_training_args(args, output_dir):
 
     shared_params = {
-        "save_dir": save_dir,
+        "output_dir": output_dir,
         "do_train": True if args.evaluate_dir is None else False,
         "logging_strategy": "steps",
         "save_strategy": "epoch",
