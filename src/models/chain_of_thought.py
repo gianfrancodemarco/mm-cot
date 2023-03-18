@@ -144,11 +144,9 @@ class ChainOfThought:
         data_collator = DataCollatorForSeq2Seq(self.tokenizer)
         print("Model parameters: ", self.model.num_parameters())
 
-        training_args = get_training_args(self.args, self.save_dir)
-
         self.seq2seq_trainer = Seq2SeqTrainer(
             model=self.model,
-            args=training_args,
+            args=get_training_args(self.args, self.save_dir),
             train_dataset=train_set,
             eval_dataset=eval_set,
             data_collator=data_collator,
