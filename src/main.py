@@ -33,8 +33,7 @@ def get_fakeddit_cot():
     test_set = FakedditDataset(
         dataframe=dataframe,
         tokenizer=tokenizer,
-        vision_features=vision_features,
-        max_length=args.output_len
+        vision_features=vision_features
     )
     chain_of_thought = MLFlowChainOfThought(args) \
         .set_tokenizer(tokenizer) \

@@ -29,13 +29,15 @@ class FakedditDataset(Dataset):
         vision_features: np.ndarray = None,
         rationales: List[str] = None,
         labels_type: LabelsTypes = LabelsTypes.TWO_WAY,
-        max_length: int = 512
+        source_len: int = 512,
+        target_len: int = 512,
     ) -> None:
 
         self.labels_type = labels_type
         self.dataframe = dataframe
         self.tokenizer = tokenizer
-        self.max_length = max_length
+        self.source_len = source_len
+        self.target_len = target_len
         self.vision_features = vision_features
         self.rationales = rationales
 
@@ -52,12 +54,13 @@ class FakedditDataset(Dataset):
     def _build_dataset(self) -> None:
 
         for index, row in enumerate(self.dataframe.to_dict(orient="records")[:500]):
-            
+
             _rationale = ''
             if self.rationales:
-                _rationale  = self.rationales[index]
-            
-            _input_ids, _attention_mask = self.get_input_ids(row["clean_title"], _rationale)
+                _rationale = self.rationales[index]
+
+            _input_ids, _attention_mask = self.get_input_ids(
+                row["clean_title"], _rationale)
 
             self.input_ids = torch.cat(
                 (self.input_ids, _input_ids.unsqueeze(0)), 0)
@@ -72,7 +75,7 @@ class FakedditDataset(Dataset):
     def get_input_ids(self, title: str, rationale: str) -> Tuple[Tensor, Tensor]:
 
         full_text = self._get_question_text(title, rationale)
-        processed = self.process_data(full_text)
+        processed = self.process_data(full_text, self.source_len)
 
         input_ids = processed["input_ids"].squeeze().to(device)
         attention_mask = processed["attention_mask"].squeeze().to(device)
@@ -106,13 +109,13 @@ class FakedditDataset(Dataset):
     def process_data(
             self,
             text,
-            pad_to_max_length=True
+            max_length
     ):
         text = " ".join(str(text).split())
         return self.tokenizer.batch_encode_plus(
             [text],
-            max_length=self.max_length,
-            pad_to_max_length=pad_to_max_length,
+            max_length=max_length,
+            pad_to_max_length=True,
             truncation=True,
             padding="max_length",
             return_tensors="pt",

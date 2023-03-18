@@ -63,4 +63,4 @@ def convert_int_to_label(label: str) -> int:
 
 
 def get_label_text(label: str) -> str:
-    return f"The answer is ({label})"
+    return f"The answer is ({label})."
