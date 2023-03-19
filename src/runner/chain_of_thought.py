@@ -5,7 +5,7 @@ from datetime import datetime
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer, T5Tokenizer
 
@@ -18,7 +18,6 @@ from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
                                                        get_backup_dir,
                                                        get_prediction_filename)
 from src.runner.runner import Runner
-from src.data.dataset_iterator import DatasetIterator
 
 
 class ChainOfThought(Runner):
@@ -96,20 +95,14 @@ class ChainOfThought(Runner):
             "targets": []
         }
 
-        for batch in tqdm(DatasetIterator(self.test_set, batch_size=self.args.eval_bs)):
+        for batch in tqdm(DataLoader(dataset=self.test_set, batch_size=self.args.eval_bs, shuffle=False)):
 
-            kwargs = {
-                "decoder_input_ids": torch.stack(tuple(torch.tensor([self.model.generation_config.pad_token_id]) for i in range(len(batch)))),
-            }
-
+            kwargs = {}
             if getattr(self.test_set, 'image_ids', None) is not None:
-                kwargs['image_ids'] = torch.stack(
-                    tuple(el['image_ids'] for el in batch))
-
-            input_ids = torch.stack(tuple(el['input_ids'] for el in batch))
+                kwargs['image_ids'] = batch['image_ids']
 
             out = self.model.generate(
-                input_ids,
+                batch['input_ids'],
                 **kwargs
             )
 
