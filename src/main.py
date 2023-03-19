@@ -27,14 +27,17 @@ def get_fakeddit_cot():
     model = get_t5_model(args, tokenizer, get_backup_dir(args))
 
     dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
-    vision_features = np.load(
-        constants.FAKEDDIT_VISION_FEATURES_PATH, allow_pickle=True)
+
+    # TODO: change based on img_type
+    vision_features = None
+    if args.img_type:
+        vision_features = np.load(
+            constants.FAKEDDIT_VISION_FEATURES_PATH, allow_pickle=True)
 
     test_set = FakedditDataset(
         dataframe=dataframe,
         tokenizer=tokenizer,
-        vision_features=vision_features,
-        max_length=args.output_len
+        vision_features=vision_features
     )
     chain_of_thought = MLFlowChainOfThought(args) \
         .set_tokenizer(tokenizer) \

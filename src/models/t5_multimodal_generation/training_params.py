@@ -94,48 +94,44 @@ def get_training_data(args, dataframe, tokenizer):
     return train_set, eval_set, test_set
 
 
-def get_training_args(args, save_dir):
+def get_training_args(args, output_dir):
+
+    shared_params = {
+        "output_dir": output_dir,
+        "do_train": True if args.evaluate_dir is None else False,
+        "logging_strategy": "steps",
+        "save_strategy": "epoch",
+        "save_total_limit": 2,
+        "learning_rate": args.lr,
+        "eval_accumulation_steps": args.eval_acc,
+        "per_device_train_batch_size": args.bs,
+        "per_device_eval_batch_size": args.eval_bs,
+        "weight_decay": 0.01,
+        "num_train_epochs": args.epoch,
+        "predict_with_generate": args.use_generate,
+        "report_to": "none",
+        "save_total_limit": 1,
+        "resume_from_checkpoint": True
+    }
+
     # only use the last model for evaluation to save time
     if args.final_eval:
-        training_args = Seq2SeqTrainingArguments(
-            save_dir,
-            do_train=True if args.evaluate_dir is None else False,
-            do_eval=False,
-            evaluation_strategy="no",
-            logging_strategy="steps",
-            save_strategy="epoch",
-            save_total_limit=2,
-            learning_rate=args.lr,
-            eval_accumulation_steps=args.eval_acc,
-            per_device_train_batch_size=args.bs,
-            per_device_eval_batch_size=args.eval_bs,
-            weight_decay=0.01,
-            num_train_epochs=args.epoch,
-            predict_with_generate=args.use_generate,
-            report_to="none",
-        )
+        params = {
+            **shared_params,
+            "do_eval": False,
+            "evaluation_strategy": "no"
+        }
     # evaluate at each epoch
     else:
-        training_args = Seq2SeqTrainingArguments(
-            save_dir,
-            do_train=True if args.evaluate_dir is None else False,
-            do_eval=True,
-            evaluation_strategy="epoch",
-            logging_strategy="steps",
-            save_strategy="epoch",
-            save_total_limit=2,
-            learning_rate=args.lr,
-            eval_accumulation_steps=args.eval_acc,
-            per_device_train_batch_size=args.bs,
-            per_device_eval_batch_size=args.eval_bs,
-            weight_decay=0.01,
-            num_train_epochs=args.epoch,
-            metric_for_best_model="accuracy" if args.prompt_format != "QCM-LE" else "rougeL",
-            predict_with_generate=args.use_generate,
-            load_best_model_at_end=True,
-            report_to="none",
-        )
-    return training_args
+        params = {
+            **shared_params,
+            "do_eval": True,
+            "evaluation_strategy": "epoch",
+            "metric_for_best_model": "accuracy" if args.prompt_format != "QCM-LE" else "rougeL",
+            "load_best_model_at_end": True,
+        }
+
+    return Seq2SeqTrainingArguments(**params)
 
 
 def is_img_type_known(args):

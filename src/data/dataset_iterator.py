@@ -14,6 +14,9 @@ class DatasetIterator:
         self._index = 0
         return self
 
+    def __len__(self):
+        return self.num_batches
+
     def __next__(self):
         if self._index < self.num_batches:
             items = []

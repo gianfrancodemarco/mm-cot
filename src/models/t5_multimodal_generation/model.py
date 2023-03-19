@@ -252,3 +252,21 @@ class T5ForMultimodalGeneration(T5ForConditionalGeneration, ABC):
             "use_cache": use_cache,
             "image_ids": kwargs.get("image_ids")
         }
+
+    def to_onxx(self):
+
+        dummy_input = {
+            "input_ids": torch.zeros(1, 512).to(torch.long),
+            "decoder_input_ids": torch.tensor([1, self.generation_config.pad_token_id])[None, :],
+            "image_ids": torch.zeros(1, 100, 256).to(torch.float)[None, :],
+        }
+
+        torch.onnx.export(
+            self,
+            dummy_input,
+            "T5ForMultimodalGeneration.onnx",
+            verbose=False,
+            input_names=["input_ids", "image_ids"],
+            output_names=["output"],
+            export_params=False
+        )

@@ -19,6 +19,7 @@ from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
                                                        get_backup_dir,
                                                        get_prediction_filename)
 from src.runner.runner import Runner
+from src.data.dataset_iterator import DatasetIterator
 
 
 class ChainOfThought(Runner):
@@ -96,14 +97,20 @@ class ChainOfThought(Runner):
             "targets": []
         }
 
-        for elem in tqdm(self.test_set):
+        for batch in tqdm(DatasetIterator(self.test_set, batch_size=self.args.eval_bs)):
 
-            kwargs = {}
-            if 'image_ids' in elem:
-                kwargs['image_ids'] = elem['image_ids'][None, :]
+            kwargs = {
+                "decoder_input_ids": torch.stack(tuple(torch.tensor([self.model.generation_config.pad_token_id]) for i in range(len(batch)))),
+            }
+
+            if getattr(self.test_set, 'image_ids', None) is not None:
+                kwargs['image_ids'] = torch.stack(
+                    tuple(el['image_ids'] for el in batch))
+
+            input_ids = torch.stack(tuple(el['input_ids'] for el in batch))
 
             out = self.model.generate(
-                elem['input_ids'][None, :],
+                input_ids,
                 **kwargs
             )
 
@@ -113,8 +120,8 @@ class ChainOfThought(Runner):
             )
 
             output["predictions"].extend(prediction)
-            output["targets"].append(elem['plain_labels'])
 
+        output["targets"] = [el["plain_labels"] for el in self.test_set]
         output["metrics"] = self._compute_metrics(
             output["predictions"], output["targets"])
 
@@ -152,11 +159,9 @@ class ChainOfThought(Runner):
         data_collator = DataCollatorForSeq2Seq(self.tokenizer)
         print("Model parameters: ", self.model.num_parameters())
 
-        training_args = get_training_args(self.args, self.save_dir)
-
         self.seq2seq_trainer = Seq2SeqTrainer(
             model=self.model,
-            args=training_args,
+            args=get_training_args(self.args, self.save_dir),
             train_dataset=train_set,
             eval_dataset=eval_set,
             data_collator=data_collator,

@@ -1,6 +1,7 @@
 import os
 import zipfile
 
+import pandas as pd
 import requests
 from tqdm import tqdm
 
@@ -29,7 +30,7 @@ def download_file(url, file_name):
 def get_images_paths(dataframe: pd.DataFrame) -> list:
     images_paths = []
     base_path = constants.FAKEDDIT_IMG_DATASET_PATH
-    for row in dataframe.iterrows():
-        image_path = os.path.join(base_path, row['id'])
+    for index, row in dataframe.iterrows():
+        image_path = os.path.join(base_path, f"{row['id']}.jpg")
         images_paths.append(image_path)
     return images_paths
