@@ -2,8 +2,6 @@ import os
 import pandas as pd
 from src import constants
 
-from src.data.vision_features.transformer_extractor import VisionFeaturesExtractor
-
 def load_data():
     dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
     train_data = dataframe[:1200]

@@ -1,8 +1,7 @@
 import os
 import sys
-from transformers import AutoImageProcessor, DetrForObjectDetection
+from transformers import ViTImageProcessor, ViTModel
 from PIL import Image, UnidentifiedImageError
-from src import constants
 import pandas as pd
 import torch
 import numpy as np
@@ -10,12 +9,12 @@ import dvc.api
 from dvc.exceptions import DvcException
 
 
-class VisionFeaturesExtractor:
+class TransformerExtractor:
     
     def __init__(self, model_name: str = None):
         model_name = model_name if model_name else self._get_model_name()
-        self.image_processor = AutoImageProcessor.from_pretrained(model_name)
-        self.model = DetrForObjectDetection.from_pretrained(model_name) #change model loader
+        self.image_processor = ViTImageProcessor.from_pretrained(model_name)
+        self.model = ViTModel.from_pretrained(model_name) #change model loader
         
     def _get_model_name(self):
 
@@ -66,7 +65,7 @@ class VisionFeaturesExtractor:
         return vision_features
 
 """
-vision_features_extrctor = VisionFeaturesExtractor()
+vision_features_extrctor = TransformerExtractor()
 save_path = os.path.join(constants.FAKEDDIT_DATASET_PARTIAL_PATH, "vision_features.npy")
 checkpoint = len(vision_features_extrctor.load_checkpoint(save_path))
 dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
