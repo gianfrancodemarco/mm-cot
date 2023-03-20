@@ -112,7 +112,12 @@ class ChainOfThought(Runner):
             )
 
             output["predictions"].extend(prediction)
+            # TODO
+            # output["targets"].extend(batch['label']) 
+            
 
+        # TODO
+        # output["targets"] = 
         output["targets"] = [el["plain_labels"] for el in self.test_set]
         output["metrics"] = self._compute_metrics(
             output["predictions"], output["targets"])

@@ -53,7 +53,7 @@ class FakedditDataset(Dataset):
 
     def _build_dataset(self) -> None:
 
-        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:500]):
+        for index, row in enumerate(self.dataframe.to_dict(orient="records")):
 
             _rationale = ''
             if self.rationales:
@@ -66,6 +66,9 @@ class FakedditDataset(Dataset):
                 (self.input_ids, _input_ids.unsqueeze(0)), 0)
             self.attention_masks = torch.cat(
                 (self.attention_masks, _attention_mask.unsqueeze(0)), 0)
+
+            self.labels = torch.cat((self.labels, torch.tensor([self.get_label(index)])), 0)
+
 
             if self.vision_features is not None:
                 _image_ids = self.get_image_ids(index)
@@ -130,7 +133,7 @@ class FakedditDataset(Dataset):
         item = {
             "input_ids": self.input_ids[index].to(torch.long),
             "attention_mask": self.attention_masks[index].to(torch.long),
-            # "labels":  self.get_label(index),
+            "labels":  self.get_label(index),
             "plain_labels": get_label_text(convert_int_to_label(self.get_label(index)))
         }
 

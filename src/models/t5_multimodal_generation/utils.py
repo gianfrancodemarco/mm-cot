@@ -6,8 +6,7 @@ import nltk
 import numpy as np
 import torch
 
-from constants import ModelOutput
-from src.constants import PromptFormat
+from src.constants import PromptFormat, ModelOutput
 
 
 def compute_metrics_rougel(tokenizer, predictions, targets):
