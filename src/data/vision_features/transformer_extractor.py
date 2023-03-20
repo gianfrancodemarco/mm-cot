@@ -1,6 +1,6 @@
 import os
 import sys
-from transformers import ViTImageProcessor, ViTModel
+from transformers import AutoProcessor, CLIPVisionModel
 from PIL import Image, UnidentifiedImageError
 import pandas as pd
 import torch
@@ -11,10 +11,10 @@ from dvc.exceptions import DvcException
 
 class TransformerExtractor:
     
-    def __init__(self, model_name: str = None):
-        model_name = model_name if model_name else self._get_model_name()
-        self.image_processor = ViTImageProcessor.from_pretrained(model_name)
-        self.model = ViTModel.from_pretrained(model_name) #change model loader
+    def __init__(self, model_name: str = None, model_class = CLIPVisionModel):
+        model_name = model_name if model_name else self._get_model_name()     
+        self.image_processor = AutoProcessor.from_pretrained(model_name)
+        self.model = model_class.from_pretrained(model_name) #change model loader
         
     def _get_model_name(self):
 
