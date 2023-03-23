@@ -8,7 +8,6 @@ import torch
 
 from src.constants import PromptFormat, ModelOutput
 
-
 def compute_metrics_rougel(tokenizer, predictions, targets):
     """
     ROUGE-L metric for Rational generation
@@ -25,7 +24,6 @@ def compute_metrics_rougel(tokenizer, predictions, targets):
         pred != tokenizer.pad_token_id) for pred in predictions]
     result["gen_len"] = np.mean(prediction_lens)
     return {'rouge-l': result}
-
 
 def compute_metrics_acc(tokenizer, predictions, targets):
     """
@@ -82,3 +80,4 @@ def get_prediction_filename(args):
     if args.prompt_format == PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value:
         return ModelOutput.RATIONALE.value
     return ModelOutput.ANSWER.value
+

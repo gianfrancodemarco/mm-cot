@@ -13,7 +13,7 @@ from src.data.fakeddit.labels import (LabelsTypes, convert_int_to_label,
                                       get_options_text)
 
 DATASET_PATH = 'data/fakeddit/partial/dataset.csv'
-DEFAULT_PROMPT = """Question: Which of the given options better reflects the news given? \nContext: A news is a piece of information regardings fact happening in the world. A news can also be crafted and manipulated with malicious objectives. \n<TEXT>\nOptions: <OPTIONS>"""
+DEFAULT_PROMPT = """Question: Is this news fake or not? \nContext: \n<TEXT>\nOptions: <OPTIONS>"""
 
 IMG_SHAPE = (100, 256)
 
@@ -53,7 +53,7 @@ class FakedditDataset(Dataset):
 
     def _build_dataset(self) -> None:
 
-        for index, row in enumerate(self.dataframe.to_dict(orient="records")):
+        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:2000]):
 
             _rationale = ''
             if self.rationales:

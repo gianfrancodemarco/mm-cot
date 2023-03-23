@@ -1,2 +1,5 @@
 feature_extraction:
   model-name: 'facebook/detr-resnet-101-dc5'
+train_evaluate_baseline_classifiers:
+  img_type: 'detr'
+  rationale: True
