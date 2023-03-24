@@ -1,0 +1,15 @@
+stages:
+  dowload_data:
+    cmd: python data/dowload.py
+  feature_extraction:
+    deps:
+      - src/data/fakeeddit/
+    cmd: python3 data/vision_features/transformer_extractor.py
+    params:
+      - train.GTZAN.model-name
+  train_evaluate_baseline_classifiers:
+    deps:
+      - src/models/baseline_classifiers
+    cmd: python3 src/pipeline/train_evaluate_baseline_classifiers.py
+    params:
+      - train_evaluate_baseline_classifiers

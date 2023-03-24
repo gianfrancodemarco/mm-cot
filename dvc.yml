@@ -1,9 +1,0 @@
-stages:
-  dowload_data:
-    cmd: python data/dowload.py
-  feature_extraction:
-    deps:
-      - src/data/fakeeddit/
-    cmd: python data/vision_features/transformer_extractor.py
-    params:
-      - train.GTZAN.model-name

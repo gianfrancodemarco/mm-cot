@@ -17,8 +17,6 @@ from src.models.t5_multimodal_generation.training_params import (
 from src.models.t5_multimodal_generation.utils import get_backup_dir
 from dotenv import load_dotenv
 
-args = parse_args()
-
 
 def get_fakeddit_cot():
 

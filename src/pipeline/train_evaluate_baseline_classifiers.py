@@ -1,5 +1,6 @@
 
 import json
+import logging
 import os
 
 import dvc.api
@@ -15,6 +16,7 @@ from src.models.baseline_classifiers.model import (TrainingArguments,
                                                    TransformerClassifier,
                                                    TransformerConfig)
 from src.models.evaluation.evaluation_metrics import accuracy
+from src.runner.mlflow_chain_of_thought import MLFlowLogging
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
@@ -22,7 +24,7 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 #params_show = dvc.api.params_show(stages='train_evaluate_baseline_classifiers')
 params_show = {
     "img_type": "detr",
-    "use_rationale": True
+    "use_rationale": False
 }
 
 img_shape = {
@@ -34,8 +36,8 @@ def get_config():
         input_dim=512,
         hidden_dim=512,
         output_dim=2,
-        num_layers=4,
-        num_heads=8,
+        num_layers=1,
+        num_heads=2,
         dropout=0.1,
     )
 
@@ -60,6 +62,7 @@ def get_datasets():
     splits = {}
 
     for split_name in ['train', 'validation', 'test']:
+        logging.info(f"Loading {split_name}")
 
         dataframe = pd.read_csv(os.path.join(constants.FAKEDDIT_DATASET_PARTIAL_PATH, f"{split_name}.csv"))
 
@@ -81,11 +84,6 @@ def get_datasets():
             vision_features=vision_features, 
             rationales=rationales
         )
-
-    #train_loader = DataLoader(splits["train"], batch_size=4, shuffle=True)
-    #validation_loader = DataLoader(splits["validation"], batch_size=4, shuffle=False)
-    #test_loader = DataLoader(splits["test"], batch_size=4, shuffle=False)
-
     return splits["train"], splits["validation"], splits["test"]
 
 config = get_config()
@@ -115,10 +113,13 @@ trainer = Trainer(
 
 train_set, validation_set, test_set = get_datasets()
 
+
+@MLFlowLogging(experiment_name="baseline")
 def train():
     trainer.train_dataset, trainer.eval_dataset = train_set, validation_set
     trainer.train()
 
+@MLFlowLogging(experiment_name="baseline")
 def evaluate():
     trainer.evaluate(eval_dataset=test_set)
 
