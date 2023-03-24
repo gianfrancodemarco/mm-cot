@@ -16,28 +16,29 @@ from src.models.baseline_classifiers.model import (TrainingArguments,
                                                    TransformerClassifier,
                                                    TransformerConfig)
 from src.models.evaluation.evaluation_metrics import accuracy
-from src.runner.mlflow_chain_of_thought import MLFlowLogging
+from src.runner.mlflow_logging import MLFlowLogging
+from dotenv import load_dotenv
+from src.utils import set_random_seed
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-
-# FOR DEBUG ONLY, REMOVE THIS
-#params_show = dvc.api.params_show(stages='train_evaluate_baseline_classifiers')
-params_show = {
-    "img_type": "detr",
-    "use_rationale": False
-}
+load_dotenv(override=True)
+params_show = dvc.api.params_show()['train_evaluate_baseline_classifiers']
+set_random_seed(params_show.get("random_state", 42))
 
 img_shape = {
     "detr": (100, 256)
 }
 
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
 def get_config():
     config = TransformerConfig(
+        vocab_size=tokenizer.vocab_size,
+        embedding_dimension=tokenizer.model_max_length,
         input_dim=512,
-        hidden_dim=512,
+        hidden_dim=8,
         output_dim=2,
         num_layers=1,
-        num_heads=2,
+        num_heads=1,
         dropout=0.1,
     )
 
@@ -74,6 +75,7 @@ def get_datasets():
     
         rationales = None
         if use_rationale:
+            logging.info("Adding rationales to input")
             with open(os.path.join(constants.FAKEDDIT_RATIONALES_DATASET_PATH, f"{split_name}.json"), "r") as f:
                 rationale_df = json.loads(f.read())
             rationales = rationale_df['predictions']
@@ -90,7 +92,7 @@ config = get_config()
 model = TransformerClassifier(config)
 
 training_args = TrainingArguments(
-    output_dir="./",
+    output_dir=constants.MODEL_PATH,
     evaluation_strategy='steps',
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
@@ -99,8 +101,6 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=16,
     logging_steps=50,
     eval_steps=50,
-    overwrite_output_dir=True,
-    save_total_limit=1,
     num_train_epochs=100
 )
 
@@ -113,15 +113,19 @@ trainer = Trainer(
 
 train_set, validation_set, test_set = get_datasets()
 
+def get_run_name():
+   return "_".join([f"{k}_{v}" for (k, v) in params_show.items()])
 
-@MLFlowLogging(experiment_name="baseline")
+@MLFlowLogging(experiment_name="baseline", run_name=f"train_{get_run_name()}")
 def train():
     trainer.train_dataset, trainer.eval_dataset = train_set, validation_set
     trainer.train()
+    return params_show
 
-@MLFlowLogging(experiment_name="baseline")
+@MLFlowLogging(experiment_name="baseline", run_name=f"evaluate_{get_run_name()}")
 def evaluate():
-    trainer.evaluate(eval_dataset=test_set)
+    results = trainer.evaluate(eval_dataset=test_set, metric_key_prefix="test")
+    return {**results, **params_show}
 
 train()
 evaluate()

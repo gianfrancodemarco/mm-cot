@@ -1,0 +1,18 @@
+schema: '2.0'
+stages:
+  train_evaluate_baseline_classifiers:
+    cmd: python src/pipeline/train_evaluate_baseline_classifiers.py
+    deps:
+    - path: src/models/baseline_classifiers
+      md5: f500b22d205467ce7163cda63dbf8373.dir
+      size: 4965
+      nfiles: 3
+    - path: src/pipeline/train_evaluate_baseline_classifiers.py
+      md5: 0ae1c399a2d70e06c300c2148a22ceb5
+      size: 4027
+    params:
+      params.yaml:
+        train_evaluate_baseline_classifiers:
+          random_state: 42
+          use_rationale: true
+          img_type: detr

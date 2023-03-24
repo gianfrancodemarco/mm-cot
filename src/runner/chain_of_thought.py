@@ -17,8 +17,10 @@ from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
                                                        compute_metrics_rougel,
                                                        get_backup_dir,
                                                        get_prediction_filename)
-from src.runner.runner import Runner
 from src.runner.mlflow_logging import MLFlowLogging
+from src.runner.runner import Runner
+from src.utils import set_random_seed
+
 
 class ChainOfThought(Runner):
 
@@ -27,7 +29,7 @@ class ChainOfThought(Runner):
         args
     ):
         self.args = args
-        self._set_random_seed()
+        set_random_seed(self.args.seed)
         self.dataframe = None
         self.train_set = None
         self.validation_set = None
@@ -41,12 +43,6 @@ class ChainOfThought(Runner):
 
         self.save_dir = get_backup_dir(args)
         self.filename = get_prediction_filename(args)
-
-    def _set_random_seed(self):
-        random.seed(self.args.seed)
-        torch.manual_seed(self.args.seed)
-        np.random.seed(self.args.seed)
-        torch.backends.cudnn.deterministic = True
 
     def set_tokenizer(self, tokenizer: T5Tokenizer):
         self.tokenizer = tokenizer
@@ -130,7 +126,14 @@ class ChainOfThought(Runner):
         with open(output_prediction_file, "w") as writer:
             writer.write(json.dumps(output, indent=4))
 
-        return output["metrics"]
+        return {
+            **output["metrics"],
+            "task": self.args.task,
+            "dataset": self.args.dataset,
+            "img_type": self.args.img_type,
+            "output": self.args.prompt_format,
+            "test_le": self.args.test_le
+        }
 
     def infer(self, sample):
         # Extract EVALUATE common logic in a private method

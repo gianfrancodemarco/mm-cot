@@ -6,6 +6,7 @@ DATE_FORMAT = '%H_%M_%S'
 ROOT_PATH = Path(__file__).parent.parent
 SRC_PATH = os.path.join(ROOT_PATH, "src")
 DATA_PATH = os.path.join(ROOT_PATH, "data")
+MODEL_PATH = os.path.join(ROOT_PATH, "models")
 
 SCIENCEQA_VISION_FEATURES_PATH = os.path.join(DATA_PATH, "vision_features")
 SCIENCEQA_DATASET_PATH = os.path.join(DATA_PATH, "dataset", "scienceqa")
