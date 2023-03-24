@@ -18,7 +18,7 @@ from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
                                                        get_backup_dir,
                                                        get_prediction_filename)
 from src.runner.runner import Runner
-
+from src.runner.mlflow_logging import MLFlowLogging
 
 class ChainOfThought(Runner):
 
@@ -81,11 +81,13 @@ class ChainOfThought(Runner):
         task = tasks_map.get(self.args.task)
         task()
 
+    @MLFlowLogging
     def train(self):
         self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
         self.seq2seq_trainer.train()
         self.seq2seq_trainer.save_model(self.save_dir)
 
+    @MLFlowLogging
     def evaluate(self) -> dict:
         """ Generate the textual output for the dataset and returns the metrics """
 
