@@ -7,7 +7,7 @@ import dvc.api
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
-from transformers import BertTokenizer, DefaultDataCollator, Trainer
+from transformers import AutoTokenizer, DefaultDataCollator, Trainer
 
 from src import constants
 from src.data.fakeddit.dataset import FakedditDataset
@@ -28,7 +28,10 @@ img_shape = {
     "detr": (100, 256)
 }
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+# tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')                    # 20 052 034
+# tokenizer = AutoTokenizer.from_pretrained('roberta-base')                         # 30 160 450
+# tokenizer = AutoTokenizer.from_pretrained('albert-base-v2')                       # 19 784 770
+tokenizer = AutoTokenizer.from_pretrained('google/electra-base-discriminator')      # 20 052 034
 
 def get_config():
     config = TransformerConfig(
