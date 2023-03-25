@@ -1,4 +1,3 @@
-
 import json
 import logging
 import os
@@ -25,13 +24,12 @@ params_show = dvc.api.params_show()['train_evaluate_baseline_classifiers']
 set_random_seed(params_show.get("random_state", 42))
 
 img_shape = {
-    "detr": (100, 256)
+    "detr": (100, 256),
+    "clip": (577, 1024),
+    "vit": (197, 1024)
 }
 
-# tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')                    # 20 052 034
-# tokenizer = AutoTokenizer.from_pretrained('roberta-base')                         # 30 160 450
-# tokenizer = AutoTokenizer.from_pretrained('albert-base-v2')                       # 19 784 770
-tokenizer = AutoTokenizer.from_pretrained('google/electra-base-discriminator')      # 20 052 034
+tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')                    # 20 052 034
 
 def get_config():
     config = TransformerConfig(
@@ -42,7 +40,7 @@ def get_config():
         output_dim=2,
         num_layers=1,
         num_heads=1,
-        dropout=0.1,
+        dropout=0.5,
     )
 
     img_type = params_show.get('img_type') 
@@ -87,7 +85,8 @@ def get_datasets():
             dataframe=dataframe,
             tokenizer=tokenizer,
             vision_features=vision_features, 
-            rationales=rationales
+            rationales=rationales,
+            image_shape=img_shape[img_type] if img_type else None
         )
     return splits["train"], splits["validation"], splits["test"]
 
@@ -104,7 +103,10 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=16,
     logging_steps=50,
     eval_steps=50,
-    num_train_epochs=100
+    num_train_epochs=100,
+    weight_decay=0.15,
+    learning_rate=5e-6,
+    dataloader_pin_memory=False
 )
 
 trainer = Trainer(

@@ -25,7 +25,7 @@ for model_config in models_configs:
     base_save_path = os.path.join(
         constants.FAKEDDIT_VISION_FEATURES_FOLDER_PATH, folder_name, "[split].npy")
     base_data_path = os.path.join(
-        constants.FAKEDDIT_VISION_FEATURES_FOLDER_PATH, "vision_features_[split].csv")
+        constants.FAKEDDIT_DATASET_PARTIAL_PATH, "[split].csv")
 
     for split in ["train", "validation", "test"]:
 

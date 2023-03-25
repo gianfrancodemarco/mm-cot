@@ -7,8 +7,8 @@ train_evaluate_baseline_classifiers:
   
   #img_type: 'detr'
   
-  use_rationale: True
-  img_type: 'detr'
+  #use_rationale: True
+  #img_type: 'detr'
   
   #use_rationale: True
   #img_type: 'clip'

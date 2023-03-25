@@ -15,9 +15,7 @@ from src.data.fakeddit.labels import (LabelsTypes, convert_int_to_label,
 DATASET_PATH = 'data/fakeddit/partial/dataset.csv'
 DEFAULT_PROMPT = """Question: Is this news fake or not? \nContext: \n<TEXT>\nOptions: <OPTIONS>"""
 
-IMG_SHAPE = (100, 256)
-
-device = 'cpu'  # 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class FakedditDataset(Dataset):
@@ -31,6 +29,7 @@ class FakedditDataset(Dataset):
         labels_type: LabelsTypes = LabelsTypes.TWO_WAY,
         source_len: int = 512,
         target_len: int = 512,
+        image_shape = (100,256)
     ) -> None:
 
         self.labels_type = labels_type
@@ -40,6 +39,7 @@ class FakedditDataset(Dataset):
         self.target_len = target_len
         self.vision_features = vision_features
         self.rationales = rationales
+        self.image_shape = image_shape
 
         self.input_ids = torch.tensor([], device=device)
         self.attention_masks = torch.tensor([], device=device)
@@ -98,7 +98,7 @@ class FakedditDataset(Dataset):
 
         image_ids = self.vision_features[vision_feature_index]
         if not len(image_ids):
-            image_ids = np.zeros(IMG_SHAPE)
+            image_ids = np.zeros(self.image_shape)
         else:
             # TODO: remove on the original data
             image_ids = image_ids[0, :, :]
