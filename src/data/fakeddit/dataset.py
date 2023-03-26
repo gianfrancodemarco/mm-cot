@@ -13,9 +13,9 @@ from src.data.fakeddit.labels import (LabelsTypes, convert_int_to_label,
                                       get_options_text)
 
 DATASET_PATH = 'data/fakeddit/partial/dataset.csv'
-DEFAULT_PROMPT = """Question: Is this news fake or not? \nContext: \n<TEXT>\nOptions: <OPTIONS>"""
+DEFAULT_PROMPT = """Question: Is the statement in this post true or false? \nContext: \n<TEXT> \nOptions: <OPTIONS>"""
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cpu' # 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class FakedditDataset(Dataset):
@@ -53,7 +53,7 @@ class FakedditDataset(Dataset):
 
     def _build_dataset(self) -> None:
 
-        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:2000]):
+        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:200]):
 
             _rationale = ''
             if self.rationales:
@@ -67,7 +67,7 @@ class FakedditDataset(Dataset):
             self.attention_masks = torch.cat(
                 (self.attention_masks, _attention_mask.unsqueeze(0)), 0)
 
-            self.labels = torch.cat((self.labels, torch.tensor([self.get_label(index)])), 0)
+            self.labels = torch.cat((self.labels, torch.tensor([self.get_label(index)], device=device)), 0)
 
 
             if self.vision_features is not None:

@@ -11,6 +11,7 @@ from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer, T5Tokenizer
 
 from src import constants
 from src.constants import PromptFormat, Task
+from src.data.fakeddit.dataset import DEFAULT_PROMPT
 from src.models.t5_multimodal_generation.training_params import (
     get_t5_model, get_training_args)
 from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
@@ -77,63 +78,73 @@ class ChainOfThought(Runner):
         task = tasks_map.get(self.args.task)
         task()
 
-    @MLFlowLogging
+    def _get_run_name(self):
+        return "_".join([self.filename, self.args.task, self.args.dataset])
+
     def train(self):
-        self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
-        self.seq2seq_trainer.train()
-        self.seq2seq_trainer.save_model(self.save_dir)
+        @MLFlowLogging(experiment_name="train", run_name=self._get_run_name())
+        def train_mlflow(self):
+            self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
+            self.seq2seq_trainer.train()
+            self.seq2seq_trainer.save_model(self.save_dir)
+        return train_mlflow(self)
 
-    @MLFlowLogging
     def evaluate(self) -> dict:
-        """ Generate the textual output for the dataset and returns the metrics """
-
-        output = {
-            "metrics": [],
-            "predictions": [],
-            "targets": []
-        }
-
-        for batch in tqdm(DataLoader(dataset=self.test_set, batch_size=self.args.eval_bs, shuffle=False)):
-
-            kwargs = {}
-            if getattr(self.test_set, 'image_ids', None) is not None:
-                kwargs['image_ids'] = batch['image_ids']
-
-            out = self.model.generate(
-                batch['input_ids'],
-                **kwargs
-            )
-
-            prediction = self.tokenizer.batch_decode(
-                out, skip_special_tokens=True,
-                clean_up_tokenization_spaces=True
-            )
-
-            output["predictions"].extend(prediction)
-            # TODO
-            # output["targets"].extend(batch['label']) 
+        @MLFlowLogging(experiment_name="mm-cot input fine-tuning", run_name=self._get_run_name())
+        def evaluate_mlflow(self):
             
+            """ Generate the textual output for the dataset and returns the metrics """
 
-        # TODO
-        # output["targets"] = 
-        output["targets"] = [el["plain_labels"] for el in self.test_set]
-        output["metrics"] = self._compute_metrics(
-            output["predictions"], output["targets"])
+            output = {
+                "metrics": [],
+                "predictions": [],
+                "targets": []
+            }
 
-        output_prediction_file = os.path.join(
-            self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
+            for batch in tqdm(DataLoader(dataset=self.test_set, batch_size=self.args.eval_bs, shuffle=False)):
 
-        with open(output_prediction_file, "w") as writer:
-            writer.write(json.dumps(output, indent=4))
+                kwargs = {}
+                if getattr(self.test_set, 'image_ids', None) is not None:
+                    kwargs['image_ids'] = batch['image_ids']
 
-        return {
-            **output["metrics"],
-            "task": self.args.task,
-            "dataset": self.args.dataset,
-            "img_type": self.args.img_type,
-            "output": self.args.prompt_format,
-            "test_le": self.args.test_le
-        }
+                out = self.model.generate(
+                    batch['input_ids'],
+                    **kwargs
+                )
+
+                prediction = self.tokenizer.batch_decode(
+                    out, skip_special_tokens=True,
+                    clean_up_tokenization_spaces=True
+                )
+
+                output["predictions"].extend(prediction)
+                # TODO
+                # output["targets"].extend(batch['label']) 
+                
+
+            # TODO
+            # output["targets"] = 
+            output["targets"] = [el["plain_labels"] for el in self.test_set]
+            output["metrics"] = self._compute_metrics(
+                output["predictions"], output["targets"])
+
+            output_prediction_file = os.path.join(
+                self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
+
+            with open(output_prediction_file, "w") as writer:
+                writer.write(json.dumps(output, indent=4))
+
+            return {
+                **output["metrics"],
+                "task": self.args.task,
+                "dataset": self.args.dataset,
+                "number_samples": len(self.test_set),
+                "img_type": self.args.img_type,
+                "output": self.args.prompt_format,
+                "test_le": self.args.test_le,
+                "prompt": DEFAULT_PROMPT
+            }
+        return evaluate_mlflow(self)
 
     def infer(self, sample):
         # Extract EVALUATE common logic in a private method

@@ -29,6 +29,6 @@ class MLFlowLogging():
                 # model = mlflow.pytorch.load_model(self.args.model + '/pytorch_model.bin')
                 # mlflow.pytorch.log_model(model, "model")
 
-                result = func()
+                result = func(*args)
                 mlflow.log_params(result or {})
         return wrapper
