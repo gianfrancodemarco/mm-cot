@@ -1,3 +1,0 @@
-stages:
-  dowload_data:
-    cmd: python dowload_data.py

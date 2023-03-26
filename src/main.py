@@ -11,10 +11,11 @@ from src import constants
 from src.args_parser import parse_args
 from src.data.fakeddit.dataset import FakedditDataset
 from src.data.scienceQA.data import load_data
-from src.models.chain_of_thought import ChainOfThought
+from src.runner.chain_of_thought import ChainOfThought
 from src.models.t5_multimodal_generation.training_params import (
     get_t5_model, get_training_data)
 from src.models.t5_multimodal_generation.utils import get_backup_dir
+from dotenv import load_dotenv
 
 args = parse_args()
 
@@ -26,14 +27,17 @@ def get_fakeddit_cot():
     model = get_t5_model(args, tokenizer, get_backup_dir(args))
 
     dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
-    vision_features = np.load(
-        constants.FAKEDDIT_VISION_FEATURES_PATH, allow_pickle=True)
+
+    # TODO: change based on img_type
+    vision_features = None
+    if args.img_type:
+        vision_features = np.load(
+            constants.FAKEDDIT_VISION_FEATURES_DETR_SUB_PATH, allow_pickle=True)
 
     test_set = FakedditDataset(
         dataframe=dataframe,
         tokenizer=tokenizer,
-        vision_features=vision_features,
-        max_length=args.output_len
+        vision_features=vision_features
     )
     chain_of_thought = ChainOfThought(args) \
         .set_tokenizer(tokenizer) \
@@ -74,6 +78,8 @@ if __name__ == '__main__':
 
     # import nltk
     # nltk.download('punkt')
+
+    load_dotenv(override=True)
 
     # training logger to log training progress
     training_logger = Table(

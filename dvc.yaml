@@ -1,0 +1,14 @@
+stages:
+  dowload_data:
+    cmd: python data/dowload.py
+  feature_extraction:
+    deps:
+      - src/data/fakeddit/
+    cmd: python data/vision_features/transformer_extractor.py
+  train_evaluate_baseline_classifiers:
+    deps:
+      - src/models/baseline_classifiers
+      - src/pipeline/train_evaluate_baseline_classifiers.py
+    cmd: python src/pipeline/train_evaluate_baseline_classifiers.py
+    params:
+      - train_evaluate_baseline_classifiers

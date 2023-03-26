@@ -6,8 +6,7 @@ import nltk
 import numpy as np
 import torch
 
-from src.constants import PromptFormat
-
+from src.constants import PromptFormat, ModelOutput
 
 def compute_metrics_rougel(tokenizer, predictions, targets):
     """
@@ -25,7 +24,6 @@ def compute_metrics_rougel(tokenizer, predictions, targets):
         pred != tokenizer.pad_token_id) for pred in predictions]
     result["gen_len"] = np.mean(prediction_lens)
     return {'rouge-l': result}
-
 
 def compute_metrics_acc(tokenizer, predictions, targets):
     """
@@ -80,5 +78,6 @@ def get_backup_dir(args):
 
 def get_prediction_filename(args):
     if args.prompt_format == PromptFormat.QUESTION_CONTEXT_OPTIONS_LECTURE_SOLUTION.value:
-        return "rationale"
-    return "answer"
+        return ModelOutput.RATIONALE.value
+    return ModelOutput.ANSWER.value
+

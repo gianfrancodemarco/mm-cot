@@ -5,28 +5,32 @@ from datetime import datetime
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer, T5Tokenizer
 
 from src import constants
 from src.constants import PromptFormat, Task
+from src.data.fakeddit.dataset import DEFAULT_PROMPT
 from src.models.t5_multimodal_generation.training_params import (
     get_t5_model, get_training_args)
 from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
                                                        compute_metrics_rougel,
                                                        get_backup_dir,
                                                        get_prediction_filename)
+from src.runner.mlflow_logging import MLFlowLogging
+from src.runner.runner import Runner
+from src.utils import set_random_seed
 
 
-class ChainOfThought:
+class ChainOfThought(Runner):
 
     def __init__(
         self,
         args
     ):
         self.args = args
-        self._set_random_seed()
+        set_random_seed(self.args.seed)
         self.dataframe = None
         self.train_set = None
         self.validation_set = None
@@ -40,12 +44,6 @@ class ChainOfThought:
 
         self.save_dir = get_backup_dir(args)
         self.filename = get_prediction_filename(args)
-
-    def _set_random_seed(self):
-        random.seed(self.args.seed)
-        torch.manual_seed(self.args.seed)
-        np.random.seed(self.args.seed)
-        torch.backends.cudnn.deterministic = True
 
     def set_tokenizer(self, tokenizer: T5Tokenizer):
         self.tokenizer = tokenizer
@@ -80,43 +78,73 @@ class ChainOfThought:
         task = tasks_map.get(self.args.task)
         task()
 
+    def _get_run_name(self):
+        return "_".join([self.filename, self.args.task, self.args.dataset])
+
     def train(self):
-        self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
-        self.seq2seq_trainer.train()
-        self.seq2seq_trainer.save_model(self.save_dir)
+        @MLFlowLogging(experiment_name="train", run_name=self._get_run_name())
+        def train_mlflow(self):
+            self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
+            self.seq2seq_trainer.train()
+            self.seq2seq_trainer.save_model(self.save_dir)
+        return train_mlflow(self)
 
-    def evaluate(self):
-        """ Generate the textual output for the dataset and computes the metrics """
+    def evaluate(self) -> dict:
+        @MLFlowLogging(experiment_name="mm-cot input fine-tuning", run_name=self._get_run_name())
+        def evaluate_mlflow(self):
+            
+            """ Generate the textual output for the dataset and returns the metrics """
 
-        output = {
-            "metrics": [],
-            "predictions": [],
-            "targets": []
-        }
+            output = {
+                "metrics": [],
+                "predictions": [],
+                "targets": []
+            }
 
-        for elem in tqdm(self.eval_set):
+            for batch in tqdm(DataLoader(dataset=self.test_set, batch_size=self.args.eval_bs, shuffle=False)):
 
-            out = self.model.generate(
-                elem['input_ids'][None, :],
-                image_ids=elem['image_ids'][None, :],
-            )
+                kwargs = {}
+                if getattr(self.test_set, 'image_ids', None) is not None:
+                    kwargs['image_ids'] = batch['image_ids']
 
-            prediction = self.tokenizer.batch_decode(
-                out, skip_special_tokens=True,
-                clean_up_tokenization_spaces=True
-            )
+                out = self.model.generate(
+                    batch['input_ids'],
+                    **kwargs
+                )
 
-            output["predictions"].extend(prediction)
-            output["targets"].append(elem['plain_labels'])
+                prediction = self.tokenizer.batch_decode(
+                    out, skip_special_tokens=True,
+                    clean_up_tokenization_spaces=True
+                )
 
-        output["metrics"] = self._compute_metrics(
-            output["predictions"], output["targets"])
+                output["predictions"].extend(prediction)
+                # TODO
+                # output["targets"].extend(batch['label']) 
+                
 
-        output_prediction_file = os.path.join(
-            self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
+            # TODO
+            # output["targets"] = 
+            output["targets"] = [el["plain_labels"] for el in self.test_set]
+            output["metrics"] = self._compute_metrics(
+                output["predictions"], output["targets"])
 
-        with open(output_prediction_file, "w") as writer:
-            writer.write(json.dumps(output, indent=4))
+            output_prediction_file = os.path.join(
+                self.save_dir, f"predictions_{self.filename}_{datetime.now().strftime(constants.DATE_FORMAT)}.json")
+
+            with open(output_prediction_file, "w") as writer:
+                writer.write(json.dumps(output, indent=4))
+
+            return {
+                **output["metrics"],
+                "task": self.args.task,
+                "dataset": self.args.dataset,
+                "number_samples": len(self.test_set),
+                "img_type": self.args.img_type,
+                "output": self.args.prompt_format,
+                "test_le": self.args.test_le,
+                "prompt": DEFAULT_PROMPT
+            }
+        return evaluate_mlflow(self)
 
     def infer(self, sample):
         # Extract EVALUATE common logic in a private method

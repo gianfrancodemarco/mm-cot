@@ -3,8 +3,11 @@ Adapted from https://github.com/lupantech/ScienceQA
 '''
 
 import re
-from rouge import Rouge
+
+import numpy as np
+from datasets import load_metric
 from nltk.translate.bleu_score import sentence_bleu
+from rouge import Rouge
 from sentence_transformers import util
 
 ########################
@@ -104,3 +107,9 @@ def caculate_similariry(results, data, model):
 
     avg_score = sum(scores) / len(scores)
     return avg_score
+
+def accuracy(eval_pred):
+    _accuracy = load_metric('accuracy')
+    predictions, labels = eval_pred
+    predictions = np.argmax(predictions, axis=1)
+    return _accuracy.compute(predictions=predictions, references=labels)

@@ -5,6 +5,11 @@ import numpy as np
 from zipfile import ZipFile
 from src import constants
 
+img_shape = {
+    "resnet": (512, 2048),
+    "clip": (49, 2048),
+    "detr": (100, 256),
+}
 
 def load_data(args):
     name_maps = None
