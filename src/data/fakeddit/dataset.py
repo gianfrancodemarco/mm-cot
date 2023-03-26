@@ -13,9 +13,9 @@ from src.data.fakeddit.labels import (LabelsTypes, convert_int_to_label,
                                       get_options_text)
 
 DATASET_PATH = 'data/fakeddit/partial/dataset.csv'
-DEFAULT_PROMPT = """Question: Is the statement in this post true or false? \nContext: \n<TEXT> \nOptions: <OPTIONS>"""
+DEFAULT_PROMPT = """Question: Is the statement in this post (A) True (B) False? \nContext: This post features a piece of text that makes a specific statement or claim about a topic. The statement may be related to politics, science, health, or any other field. The post has been shared widely on social media. \n<TEXT> \nOptions: <OPTIONS>"""
 
-device = 'cpu' # 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class FakedditDataset(Dataset):

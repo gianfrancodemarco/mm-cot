@@ -1,3 +1,4 @@
+import torch
 from transformers import Seq2SeqTrainingArguments, T5Tokenizer
 
 from src.data.scienceQA.dataset_img import ScienceQADatasetImg, img_shape
@@ -5,6 +6,7 @@ from src.data.scienceQA.dataset_std import ScienceQADatasetStd
 from src.models.t5_multimodal_generation.model import (
     T5ForConditionalGeneration, T5ForMultimodalGeneration)
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def get_t5_model(args, tokenizer: T5Tokenizer, save_dir: str):
     if is_img_type_known(args):
@@ -14,6 +16,7 @@ def get_t5_model(args, tokenizer: T5Tokenizer, save_dir: str):
             args.model, patch_size=patch_size, padding_idx=padding_idx, save_dir=save_dir)
     else:
         model = T5ForConditionalGeneration.from_pretrained(args.model)
+    model.to(device=device)
     return model
 
 
