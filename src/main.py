@@ -32,7 +32,7 @@ def get_fakeddit_cot():
     vision_features = None
     if args.img_type:
         vision_features = np.load(
-            constants.FAKEDDIT_VISION_FEATURES_DETR_SUB_PATH, allow_pickle=True)
+            constants.FAKEDDIT_VISION_FEATURES_DETR_FULL_PATH, allow_pickle=True)
 
     test_set = FakedditDataset(
         dataframe=dataframe,
