@@ -28,7 +28,12 @@ def get_fakeddit_cot():
 
     dataframe = pd.read_csv(constants.FAKEDDIT_DATASET_PATH)
 
-    # TODO: change based on img_type
+    rationales = None
+    if args.test_le:
+        with open(args.test_le, "r") as f:
+            rationale_df = json.loads(f.read())
+        rationales = rationale_df['predictions']
+
     vision_features = None
     if args.img_type:
         vision_features = np.load(
@@ -37,7 +42,8 @@ def get_fakeddit_cot():
     test_set = FakedditDataset(
         dataframe=dataframe,
         tokenizer=tokenizer,
-        vision_features=vision_features
+        vision_features=vision_features,
+        rationales=rationales
     )
     chain_of_thought = ChainOfThought(args) \
         .set_tokenizer(tokenizer) \
