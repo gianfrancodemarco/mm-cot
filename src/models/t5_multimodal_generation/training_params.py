@@ -139,4 +139,4 @@ def get_training_args(args, output_dir):
 
 def is_img_type_known(args):
     img_type = args.img_type
-    return img_type in ['detr', 'clip', 'resnet']
+    return img_type in ['facebook_detr', 'cooelf_detr', 'clip', 'resnet']

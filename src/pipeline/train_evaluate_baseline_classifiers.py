@@ -53,7 +53,8 @@ def get_config():
 def get_datasets():
 
     VISION_FEATURES_PATHS = {
-        "detr": constants.FAKEDDIT_VISION_FEATURES_DETR_PATH,
+        "facebook_detr": constants.FAKEDDIT_VISION_FEATURES_DETR_PATH,
+        "cooelf_detr": constants.FAKEDDIT_VISION_FEATURES_COOELF_DETR_PATH,
         "vit": constants.FAKEDDIT_VISION_FEATURES_VIT_PATH,
         "clip": constants.FAKEDDIT_VISION_FEATURES_CLIP
     }

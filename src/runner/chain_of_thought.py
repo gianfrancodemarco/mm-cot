@@ -90,7 +90,7 @@ class ChainOfThought(Runner):
         return train_mlflow(self)
 
     def evaluate(self) -> dict:
-        @MLFlowLogging(experiment_name="mm-cot input fine-tuning", run_name=self._get_run_name())
+        @MLFlowLogging(experiment_name="fakeddit zero-shot with pretrained", run_name=self._get_run_name())
         def evaluate_mlflow(self):
             
             """ Generate the textual output for the dataset and returns the metrics """
@@ -138,7 +138,7 @@ class ChainOfThought(Runner):
                 **output["metrics"],
                 "task": self.args.task,
                 "dataset": self.args.dataset,
-                "number_samples": len(self.test_set),
+                "number_of_examples": len(self.test_set),
                 "img_type": self.args.img_type,
                 "output": self.args.prompt_format,
                 "test_le": self.args.test_le,

@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument('--user_msg', type=str, default="baseline",
                         help='experiment type in the save_dir')
     parser.add_argument('--img_type', type=str, default=None,
-                        choices=['detr', 'clip', 'resnet'], help='type of image features')
+                        choices=['facebook_detr', 'cooelf_detr', 'clip', 'resnet'], help='type of image features')
     parser.add_argument('--eval_le', type=str, default=None,
                         help='generated rationale for the dev set')
     parser.add_argument('--test_le', type=str, default=None,

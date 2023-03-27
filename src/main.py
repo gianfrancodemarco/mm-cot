@@ -32,12 +32,15 @@ def get_fakeddit_cot():
     if args.test_le:
         with open(args.test_le, "r") as f:
             rationale_df = json.loads(f.read())
-        rationales = rationale_df['predictions']
+        rationales = rationale_df['predictions'][500:2000]
 
     vision_features = None
-    if args.img_type:
+    if args.img_type == "detr_facebook":
         vision_features = np.load(
             constants.FAKEDDIT_VISION_FEATURES_DETR_FULL_PATH, allow_pickle=True)
+    elif args.img_type == "cooelf_detr":
+        vision_features = np.load(
+            constants.FAKEDDIT_VISION_FEATURES_COOELF_DETR_FULL_PATH, allow_pickle=True)
 
     test_set = FakedditDataset(
         dataframe=dataframe,
