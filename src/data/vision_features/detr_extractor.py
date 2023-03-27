@@ -23,13 +23,14 @@ class DetrExtractor:
                     transform = T.Compose([
                         T.Resize(224),
                         T.ToTensor(),
-                        T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                        T.Normalize([0.485, 0.456, 0.406],
+                                    [0.229, 0.224, 0.225])
                     ])
                     with torch.no_grad():
                         img = Image.open(image_path).convert("RGB")
                         input = transform(img).unsqueeze(0)
                         vision_feature = self.detr_model(input)[-1].numpy()
-                
+
                 except (FileNotFoundError,  ValueError, UnidentifiedImageError) as err:
                     print(f"{image_path} || {err}")
 

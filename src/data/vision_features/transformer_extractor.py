@@ -37,19 +37,22 @@ class TransformerExtractor:
                 print(f"PROCESSING #{index + 1}: {image_path}")
 
                 try:
-                    image = Image.open(image_path)
-                    inputs = self.image_processor(images=image, return_tensors="pt")
-                    outputs = self.model(**inputs) 
-
-                    # the last hidden states are the final query embeddings of the Transformer decoder
-                    # these are of shape (batch_size, num_queries, hidden_size)
-                    vision_feature = outputs.last_hidden_state.numpy()
-
+                    vision_feature = self.extract_image_features(image_path)
                 except (FileNotFoundError,  ValueError, UnidentifiedImageError) as err:
                     print(f"{image_path} || {err}")
                     
                 vision_features.append(vision_feature)
                 np.save(file_path, np.asarray(vision_features))
+
+    def extract_image_features(self, image_path: str):
+      image = Image.open(image_path)
+      inputs = self.image_processor(images=image, return_tensors="pt")
+      outputs = self.model(**inputs) 
+
+      # the last hidden states are the final query embeddings of the Transformer decoder
+      # these are of shape (batch_size, num_queries, hidden_size)
+      vision_feature = outputs.last_hidden_state.numpy()
+      return vision_feature
 
     def load_checkpoint(self, checkpoint_path: str):
         vision_features = []

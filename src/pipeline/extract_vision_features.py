@@ -34,29 +34,31 @@ if model_name in TRANSFORMER_EXTRACTORS:
 else:
     extractor = DetrExtractor()
 
-for model_config in models_configs:
+folder_name = model_name.replace("/", '_')
 
-    folder_name = model_name.replace("/", '_')
+base_save_path = os.path.join(constants.FAKEDDIT_VISION_FEATURES_FOLDER_PATH, folder_name)
+base_data_path=os.path.join(constants.FAKEDDIT_DATASET_PARTIAL_PATH)
 
-    base_save_path = os.path.join(constants.FAKEDDIT_VISION_FEATURES_FOLDER_PATH, folder_name)
-    base_data_path=os.path.join(constants.FAKEDDIT_DATASET_PARTIAL_PATH)
-    
-    if not os.path.exists(base_save_path):
-        os.makedirs(base_save_path)
+if not os.path.exists(base_save_path):
+    os.makedirs(base_save_path)
 
-    for split in ["train", "validation", "test"]:
+for split in ["train", "validation", "test"]:
 
-        print(f"\t\t PROCESSING {split}\n\n")
+    print(f"\t\t PROCESSING {split}\n\n")
 
-        _save_path=os.path.join(base_save_path, f"{split}.npy")
-        _data_path=os.path.join(base_data_path, f"{split}.csv")
+    _save_path=os.path.join(base_save_path, f"{split}.npy")
+    _data_path=os.path.join(base_data_path, f"{split}.csv")
 
-        dataframe=pd.read_csv(_data_path)
-        images_path=get_images_paths(dataframe)
-        extractor.extract_vision_features(
-            file_path=_save_path, list_images_path=images_path)
+    dataframe=pd.read_csv(_data_path)
+    images_path=get_images_paths(dataframe)
+    extractor.extract_vision_features(
+        file_path=_save_path, list_images_path=images_path)
 
-    whole_features=[]
-    for split in ["train", "validation", "test"]:
-        _save_path=base_save_path.replace("[split]", split)
-        whole_features.extend[np.load(_save_path)]
+whole_features=[]
+for split in ["train", "validation", "test"]:
+    print(f"Processing {split}")
+    _save_path=os.path.join(base_save_path, f"{split}.npy")
+    whole_features.append(np.load(_save_path, allow_pickle=True))
+whole_features=np.concatenate(whole_features, axis=0)
+_save_path=os.path.join(base_save_path, "dataset.npy")
+np.save(_save_path, np.asarray(whole_features))
