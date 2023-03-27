@@ -1,5 +1,5 @@
 feature_extraction:
-  model-name: 'facebook/detr-resnet-101-dc5'
+  model_name: 'cooelf/detr_resnet101_dc5'
 train_evaluate_baseline_classifiers:
   random_state: 42
   

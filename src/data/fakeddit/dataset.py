@@ -13,7 +13,7 @@ from src.data.fakeddit.labels import (LabelsTypes, convert_int_to_label,
                                       get_options_text)
 
 DATASET_PATH = 'data/fakeddit/partial/dataset.csv'
-DEFAULT_PROMPT = """Question: Is the statement in this post (A) True (B) False? \nContext: This post features a piece of text that makes a specific statement or claim about a topic. The statement may be related to politics, science, health, or any other field. The post has been shared widely on social media. \n<TEXT> \nOptions: <OPTIONS>"""
+DEFAULT_PROMPT = """Question: Is the source of this information reliable? Context: (Select option A for True, or option B for False) <TEXT> Options: <OPTIONS>"""
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -53,7 +53,7 @@ class FakedditDataset(Dataset):
 
     def _build_dataset(self) -> None:
 
-        for index, row in enumerate(self.dataframe.to_dict(orient="records")[:200]):
+        for index, row in enumerate(self.dataframe.to_dict(orient="records")[200:2000]):
 
             _rationale = ''
             if self.rationales:
