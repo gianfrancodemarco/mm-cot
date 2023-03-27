@@ -29,8 +29,7 @@ class DetrExtractor:
                     with torch.no_grad():
                         img = Image.open(image_path).convert("RGB")
                         input = transform(img).unsqueeze(0)
-                        vision_feature = self.detr_model(input)[-1].numpy()
-
+                        vision_feature = self.detr_model(input)[-1].numpy().astype(np.float16)
                 except (FileNotFoundError,  ValueError, UnidentifiedImageError) as err:
                     print(f"{image_path} || {err}")
 
