@@ -13,7 +13,6 @@ from src.data.fakeddit.labels import (LabelsTypes, convert_int_to_label,
                                       get_options_text)
 
 DATASET_PATH = 'data/fakeddit/partial/dataset.csv'
-DEFAULT_PROMPT = """Question: Does the headline accurately reflect the content of this article? \nContext: (Select option A for True, or option B for False) \n<TEXT> \nOptions: <OPTIONS>"""
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -24,6 +23,7 @@ class FakedditDataset(Dataset):
         self,
         dataframe: pd.DataFrame,
         tokenizer: T5Tokenizer,
+        prompt: str,
         vision_features: np.ndarray = None,
         rationales: List[str] = None,
         labels_type: LabelsTypes = LabelsTypes.TWO_WAY,
@@ -49,12 +49,12 @@ class FakedditDataset(Dataset):
         if self.vision_features is not None:
             self.image_ids = torch.tensor([], device=device)
 
+        self.prompt = prompt
         self._build_dataset()
 
     def _build_dataset(self) -> None:
-
-        for index, row in enumerate(self.dataframe.to_dict(orient="records")[500:2000]):  # :500, 500:2000
-
+        
+        for index, row in enumerate(self.dataframe.to_dict(orient="records")):
             _rationale = ''
             if self.rationales:
                 _rationale = self.rationales[index]
@@ -88,7 +88,7 @@ class FakedditDataset(Dataset):
     def _get_question_text(self, title: str, rationale: str) -> str:
         options_text = get_options_text(self.labels_type)
 
-        question_text = DEFAULT_PROMPT.replace("<TEXT>", title)
+        question_text = self.prompt.replace("<TEXT>", title)
         question_text = question_text.replace("<OPTIONS>", options_text)
         question_text = "\n".join([question_text, rationale])
 

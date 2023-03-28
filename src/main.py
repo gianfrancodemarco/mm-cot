@@ -17,11 +17,13 @@ from src.models.t5_multimodal_generation.training_params import (
 from src.models.t5_multimodal_generation.utils import get_backup_dir
 from dotenv import load_dotenv
 
-args = parse_args()
+from src.utils import parse_range
 
+args = parse_args()
 
 def get_fakeddit_cot():
 
+    data_range_start, data_rage_end = parse_range(args.data_range)
     tokenizer = T5Tokenizer.from_pretrained(
         pretrained_model_name_or_path=args.model)
     model = get_t5_model(args, tokenizer, get_backup_dir(args))
@@ -32,21 +34,24 @@ def get_fakeddit_cot():
     if args.test_le:
         with open(args.test_le, "r") as f:
             rationale_df = json.loads(f.read())
-        rationales = rationale_df['predictions'][500:2000]
+        rationales = rationale_df['predictions'][data_range_start:data_rage_end]
 
     vision_features = None
+
     if args.img_type == "detr_facebook":
         vision_features = np.load(
-            constants.FAKEDDIT_VISION_FEATURES_DETR_FULL_PATH, allow_pickle=True)
+            constants.FAKEDDIT_VISION_FEATURES_DETR_FULL_PATH, allow_pickle=True)[data_range_start:data_rage_end]
+
     elif args.img_type == "cooelf_detr":
         vision_features = np.load(
-            constants.FAKEDDIT_VISION_FEATURES_COOELF_DETR_FULL_PATH, allow_pickle=True)
+            constants.FAKEDDIT_VISION_FEATURES_COOELF_DETR_FULL_PATH, allow_pickle=True)[data_range_start:data_rage_end]
 
     test_set = FakedditDataset(
-        dataframe=dataframe,
+        dataframe=dataframe[data_range_start:data_rage_end],
         tokenizer=tokenizer,
         vision_features=vision_features,
-        rationales=rationales
+        rationales=rationales,
+        prompt=args.prompt
     )
     chain_of_thought = ChainOfThought(args) \
         .set_tokenizer(tokenizer) \

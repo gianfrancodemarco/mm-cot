@@ -1,5 +1,4 @@
 import argparse
-
 from src.constants import PromptFormat, Task
 
 
@@ -49,6 +48,10 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=42, help='random seed')
     parser.add_argument('--task', type=str, default=Task.INFER.value, help='Task to run')
     parser.add_argument('--dataset', type=str, default="SCIENCEQA")
+    parser.add_argument('--data_range', type=str, default=None, help='Data subset indexes, format = "integer,integer"')
+    parser.add_argument('--experiment_name', type=str, default='Default', help='mlflow experiment name')
+    parser.add_argument('--prompt', type=str, default="""Question: \n Context: \n <TEXT> Options: """, help='Model input prompt')
+
 
     args = parser.parse_args()
 

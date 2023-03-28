@@ -11,7 +11,6 @@ from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer, T5Tokenizer
 
 from src import constants
 from src.constants import PromptFormat, Task
-from src.data.fakeddit.dataset import DEFAULT_PROMPT
 from src.models.t5_multimodal_generation.training_params import (
     get_t5_model, get_training_args)
 from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
@@ -82,7 +81,7 @@ class ChainOfThought(Runner):
         return "_".join([self.filename, self.args.task, self.args.dataset])
 
     def train(self):
-        @MLFlowLogging(experiment_name="train", run_name=self._get_run_name())
+        @MLFlowLogging(experiment_name=self.args.experiment_name, run_name=self._get_run_name())
         def train_mlflow(self):
             self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
             self.seq2seq_trainer.train()
@@ -90,7 +89,7 @@ class ChainOfThought(Runner):
         return train_mlflow(self)
 
     def evaluate(self) -> dict:
-        @MLFlowLogging(experiment_name="fakeddit zero-shot with pretrained", run_name=self._get_run_name())
+        @MLFlowLogging(experiment_name=self.args.experiment_name, run_name=self._get_run_name())
         def evaluate_mlflow(self):
             
             """ Generate the textual output for the dataset and returns the metrics """
@@ -142,7 +141,7 @@ class ChainOfThought(Runner):
                 "img_type": self.args.img_type,
                 "output": self.args.prompt_format,
                 "test_le": self.args.test_le,
-                "prompt": DEFAULT_PROMPT
+                "prompt": self.args.prompt
             }
         return evaluate_mlflow(self)
 

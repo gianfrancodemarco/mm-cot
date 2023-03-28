@@ -93,14 +93,20 @@
         "--final_eval",
         "--prompt_format",
         "QCMG-A",
-        //"--test_le",
-        //"data/fakeddit/partial/rationales/rationales.json",
+        "--test_le",
+        "data/fakeddit/partial/rationales/rationales.json",
         "--evaluate_dir",
         "models/MM-CoT-UnifiedQA-base-Answer",
         "--task",
         "EVALUATE",
         "--dataset",
-        "FAKEDDIT"
+        "FAKEDDIT",
+        "--data_range",
+        "500,2000", //",500" //"500,2000"
+        "--experiment_name",
+        "fakeddit zero-shot with pretrained", //fakeddit zero-shot with pretrained //mm-cot input fine-tuning
+        "--prompt",
+        "Question: Is the information in this post accurate? Context: (Select option A for True, or option B for False) <TEXT> Options: <OPTIONS>"
       ]
     },
     {
