@@ -31,10 +31,10 @@ args = [
 ]
 
 image_run = ["--img_type", "cooelf_detr"]
-image_relationale_run = image_run + ["--test_le", "data/fakeddit/partial/rationales/rationales.json"]
+image_rationale_run = image_run + ["--test_le", "data/fakeddit/partial/rationales/rationales.json"]
 
 for prompt in prompts:
-    for run in ( [], image_run, image_relationale_run):
+    for run in ( [], image_run, image_rationale_run):
         script_args = args + run
         script_args += ["--prompt", prompt]
         cmd = ["python", PYTHON_FILE_PATH] + script_args
