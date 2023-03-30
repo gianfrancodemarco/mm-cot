@@ -96,9 +96,7 @@ class ChainOfThought(Runner):
             output = {
                 "metrics": [],
                 "predictions": [],
-                "targets": [],
-                "text": [],
-                "image_url": []
+                "targets": []
             }
 
             for batch in tqdm(DataLoader(dataset=self.test_set, batch_size=self.args.eval_bs, shuffle=False)):
@@ -107,7 +105,6 @@ class ChainOfThought(Runner):
                 if getattr(self.test_set, 'image_ids', None) is not None:
                     kwargs['image_ids'] = batch['image_ids']
 
-            
                 out = self.model.generate(
                     batch['input_ids'],
                     **kwargs,

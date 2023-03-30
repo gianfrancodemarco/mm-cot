@@ -4,7 +4,6 @@ from src.constants import PromptFormat, Task
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_root', type=str, default='data')
     parser.add_argument('--output_dir', type=str, default='experiments')
     parser.add_argument('--model', type=str,
                         default='allenai/unifiedqa-t5-base')
@@ -51,7 +50,7 @@ def parse_args():
     parser.add_argument('--data_range', type=str, default=None, help='Data subset indexes, format = "integer,integer"')
     parser.add_argument('--experiment_name', type=str, default='Default', help='mlflow experiment name')
     parser.add_argument('--prompt', type=str, default="""Question: \n Context: \n <TEXT> Options: """, help='Model input prompt')
-
+    parser.add_argument('--repetition_penalty', type=float, default=1.0, help='Repetition penalty')
 
     args = parser.parse_args()
 

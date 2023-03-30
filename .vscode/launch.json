@@ -20,8 +20,6 @@
       "console": "integratedTerminal",
       "justMyCode": false,
       "args": [
-        "--data_root",
-        "data/dataset",
         "--user",
         "msg rationale",
         "--img_type",
@@ -33,8 +31,6 @@
         "QCM-LE",
         "--evaluate_dir",
         "models/rationale",
-        "--data_root",
-        "data/dataset",
         "--caption_file",
         "data/dataset/captions.json",
         "--evaluate_dir",
@@ -42,7 +38,9 @@
         "--task",
         "EVALUATE",
         "--dataset",
-        "FAKEDDIT"
+        "FAKEDDIT",
+        "--data_range",
+        "0,4"
       ]
     },
     {
