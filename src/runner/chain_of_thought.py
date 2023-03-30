@@ -19,8 +19,7 @@ from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
                                                        get_prediction_filename)
 from src.runner.mlflow_logging import MLFlowLogging
 from src.runner.runner import Runner
-from src.utils import set_random_seed
-
+from src.utils import set_random_seed   
 
 class ChainOfThought(Runner):
 
@@ -89,7 +88,7 @@ class ChainOfThought(Runner):
         return train_mlflow(self)
 
     def evaluate(self) -> dict:
-        @MLFlowLogging(experiment_name=self.args.experiment_name, run_name=self._get_run_name())
+        #@MLFlowLogging(experiment_name=self.args.experiment_name, run_name=self._get_run_name())
         def evaluate_mlflow(self):
             
             """ Generate the textual output for the dataset and returns the metrics """
@@ -97,7 +96,9 @@ class ChainOfThought(Runner):
             output = {
                 "metrics": [],
                 "predictions": [],
-                "targets": []
+                "targets": [],
+                "text": [],
+                "image_url": []
             }
 
             for batch in tqdm(DataLoader(dataset=self.test_set, batch_size=self.args.eval_bs, shuffle=False)):
@@ -106,9 +107,11 @@ class ChainOfThought(Runner):
                 if getattr(self.test_set, 'image_ids', None) is not None:
                     kwargs['image_ids'] = batch['image_ids']
 
+            
                 out = self.model.generate(
                     batch['input_ids'],
-                    **kwargs
+                    **kwargs,
+                    repetition_penalty = self.args.repetition_penalty
                 )
 
                 prediction = self.tokenizer.batch_decode(
@@ -117,10 +120,6 @@ class ChainOfThought(Runner):
                 )
 
                 output["predictions"].extend(prediction)
-                # TODO
-                # output["targets"].extend(batch['label']) 
-                
-
             # TODO
             # output["targets"] = 
             output["targets"] = [el["plain_labels"] for el in self.test_set]

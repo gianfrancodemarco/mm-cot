@@ -16,3 +16,10 @@ stages:
           random_state: 42
           use_rationale: true
           img_type: detr
+  feature_extraction:
+    cmd: python src/pipeline/extract_vision_features.py
+    deps:
+    - path: src/data/fakeddit/
+      md5: 67b90594e208d9772dd3e5d0510f8452.dir
+      size: 13049
+      nfiles: 4

@@ -16,7 +16,6 @@ DATASET_PATH = 'data/fakeddit/partial/dataset.csv'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-
 class FakedditDataset(Dataset):
 
     def __init__(
