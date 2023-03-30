@@ -88,7 +88,7 @@ class ChainOfThought(Runner):
         return train_mlflow(self)
 
     def evaluate(self) -> dict:
-        #@MLFlowLogging(experiment_name=self.args.experiment_name, run_name=self._get_run_name())
+        @MLFlowLogging(experiment_name=self.args.experiment_name, run_name=self._get_run_name())
         def evaluate_mlflow(self):
             
             """ Generate the textual output for the dataset and returns the metrics """
