@@ -22,7 +22,7 @@ class FakedditDataset(Dataset):
         self,
         dataframe: pd.DataFrame,
         tokenizer: T5Tokenizer,
-        prompt: str,
+        prompt: str = "",
         vision_features: np.ndarray = None,
         rationales: List[str] = None,
         labels_type: LabelsTypes = LabelsTypes.TWO_WAY,
