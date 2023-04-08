@@ -1,11 +1,9 @@
 import argparse
-
 from src.constants import PromptFormat, Task
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_root', type=str, default='data')
     parser.add_argument('--output_dir', type=str, default='experiments')
     parser.add_argument('--model', type=str,
                         default='allenai/unifiedqa-t5-base')
@@ -33,7 +31,7 @@ def parse_args():
     parser.add_argument('--user_msg', type=str, default="baseline",
                         help='experiment type in the save_dir')
     parser.add_argument('--img_type', type=str, default=None,
-                        choices=['detr', 'clip', 'resnet'], help='type of image features')
+                        choices=['facebook_detr', 'cooelf_detr', 'clip', 'resnet'], help='type of image features')
     parser.add_argument('--eval_le', type=str, default=None,
                         help='generated rationale for the dev set')
     parser.add_argument('--test_le', type=str, default=None,
@@ -49,6 +47,10 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=42, help='random seed')
     parser.add_argument('--task', type=str, default=Task.INFER.value, help='Task to run')
     parser.add_argument('--dataset', type=str, default="SCIENCEQA")
+    parser.add_argument('--data_range', type=str, default=None, help='Data subset indexes, format = "integer,integer"')
+    parser.add_argument('--experiment_name', type=str, default='Default', help='mlflow experiment name')
+    parser.add_argument('--prompt', type=str, default="""Question: \n Context: \n <TEXT> Options: """, help='Model input prompt')
+    parser.add_argument('--repetition_penalty', type=float, default=1.0, help='Repetition penalty')
 
     args = parser.parse_args()
 

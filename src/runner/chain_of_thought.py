@@ -11,7 +11,6 @@ from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainer, T5Tokenizer
 
 from src import constants
 from src.constants import PromptFormat, Task
-from src.data.fakeddit.dataset import DEFAULT_PROMPT
 from src.models.t5_multimodal_generation.training_params import (
     get_t5_model, get_training_args)
 from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
@@ -20,8 +19,7 @@ from src.models.t5_multimodal_generation.utils import (compute_metrics_acc,
                                                        get_prediction_filename)
 from src.runner.mlflow_logging import MLFlowLogging
 from src.runner.runner import Runner
-from src.utils import set_random_seed
-
+from src.utils import set_random_seed   
 
 class ChainOfThought(Runner):
 
@@ -82,7 +80,7 @@ class ChainOfThought(Runner):
         return "_".join([self.filename, self.args.task, self.args.dataset])
 
     def train(self):
-        @MLFlowLogging(experiment_name="train", run_name=self._get_run_name())
+        @MLFlowLogging(experiment_name=self.args.experiment_name, run_name=self._get_run_name())
         def train_mlflow(self):
             self.build_seq2seq_base_trainer(self.train_set, self.eval_set)
             self.seq2seq_trainer.train()
@@ -90,7 +88,7 @@ class ChainOfThought(Runner):
         return train_mlflow(self)
 
     def evaluate(self) -> dict:
-        @MLFlowLogging(experiment_name="mm-cot input fine-tuning", run_name=self._get_run_name())
+        #@MLFlowLogging(experiment_name=self.args.experiment_name, run_name=self._get_run_name())
         def evaluate_mlflow(self):
             
             """ Generate the textual output for the dataset and returns the metrics """
@@ -109,7 +107,8 @@ class ChainOfThought(Runner):
 
                 out = self.model.generate(
                     batch['input_ids'],
-                    **kwargs
+                    **kwargs,
+                    repetition_penalty = self.args.repetition_penalty
                 )
 
                 prediction = self.tokenizer.batch_decode(
@@ -118,10 +117,6 @@ class ChainOfThought(Runner):
                 )
 
                 output["predictions"].extend(prediction)
-                # TODO
-                # output["targets"].extend(batch['label']) 
-                
-
             # TODO
             # output["targets"] = 
             output["targets"] = [el["plain_labels"] for el in self.test_set]
@@ -138,11 +133,11 @@ class ChainOfThought(Runner):
                 **output["metrics"],
                 "task": self.args.task,
                 "dataset": self.args.dataset,
-                "number_samples": len(self.test_set),
+                "number_of_examples": len(self.test_set),
                 "img_type": self.args.img_type,
                 "output": self.args.prompt_format,
                 "test_le": self.args.test_le,
-                "prompt": DEFAULT_PROMPT
+                "prompt": self.args.prompt
             }
         return evaluate_mlflow(self)
 

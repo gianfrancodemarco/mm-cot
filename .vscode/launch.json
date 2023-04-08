@@ -20,12 +20,10 @@
       "console": "integratedTerminal",
       "justMyCode": false,
       "args": [
-        "--data_root",
-        "data/dataset",
         "--user",
         "msg rationale",
         "--img_type",
-        "detr",
+        "cooelf_detr",
         "--output_len",
         "512",
         "--final_eval",
@@ -33,8 +31,6 @@
         "QCM-LE",
         "--evaluate_dir",
         "models/rationale",
-        "--data_root",
-        "data/dataset",
         "--caption_file",
         "data/dataset/captions.json",
         "--evaluate_dir",
@@ -42,7 +38,9 @@
         "--task",
         "EVALUATE",
         "--dataset",
-        "FAKEDDIT"
+        "FAKEDDIT",
+        "--data_range",
+        "0,4"
       ]
     },
     {
@@ -58,7 +56,7 @@
         "--user",
         "msg rationale",
         "--img_type",
-        "detr",
+        "cooelf_detr",
         "--output_len",
         "512",
         "--final_eval",
@@ -87,20 +85,26 @@
         "--user_msg",
         "answer",
         "--img_type",
-        "detr",
+        "cooelf_detr",
         "--output_len",
         "64",
         "--final_eval",
         "--prompt_format",
         "QCMG-A",
-        // "--test_le",
-        // "models/MM-CoT-UnifiedQA-base-Rationale/predictions_ans_test.json",
+        "--test_le",
+        "data/fakeddit/partial/rationales/rationales.json",
         "--evaluate_dir",
         "models/MM-CoT-UnifiedQA-base-Answer",
         "--task",
         "EVALUATE",
         "--dataset",
-        "FAKEDDIT"
+        "FAKEDDIT",
+        "--data_range",
+        "500,2000", //",500" //"500,2000"
+        "--experiment_name",
+        "fakeddit zero-shot with pretrained", //fakeddit zero-shot with pretrained //mm-cot input fine-tuning
+        "--prompt",
+        "Question: Is the information in this post accurate? Context: (Select option A for True, or option B for False) <TEXT> Options: <OPTIONS>"
       ]
     },
     {

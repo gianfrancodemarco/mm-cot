@@ -7,7 +7,8 @@ from src.data.scienceQA.dataset_std import ScienceQADatasetStd
 img_shape = {
     "resnet": (512, 2048),
     "clip": (49, 2048),
-    "detr": (100, 256),
+    "facebook_detr": (100, 256),
+    "cooelf_detr": (100, 256)
 }
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'

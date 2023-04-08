@@ -2,3 +2,4 @@
     remote = origin
 ['remote "origin"']
     url = https://dagshub.com/gianfrancodemarco/mm-cot.dvc
+    read_timeout = 0

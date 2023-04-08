@@ -4,7 +4,7 @@ stages:
   feature_extraction:
     deps:
       - src/data/fakeddit/
-    cmd: python data/vision_features/transformer_extractor.py
+    cmd: python src/pipeline/extract_vision_features.py
   train_evaluate_baseline_classifiers:
     deps:
       - src/models/baseline_classifiers

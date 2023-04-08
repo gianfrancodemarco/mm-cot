@@ -28,7 +28,7 @@ def load_data(args):
         image_features = image_features.repeat(512, axis=1)
     elif args.img_type == "clip":
         image_features = np.load(constants.SCIENCEQA_CLIP)
-    elif args.img_type == "detr":
+    elif args.img_type == "cooelf_detr":
         image_features = np.load(constants.SCIENCEQA_DETR)
     else:
         image_features = np.load(constants.SCIENCEQA_DETR)
